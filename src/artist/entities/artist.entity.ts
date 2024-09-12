@@ -3,7 +3,7 @@ import { Document, Types } from 'mongoose';
 import { MusicGenre } from 'src/common/enums/music_genres.enum';
 
 @Schema({ timestamps: true })
-export class ArtistProfile extends Document {
+export class Artist extends Document {
   @Prop({ required: true })
   name: string;
 
@@ -23,4 +23,4 @@ export class ArtistProfile extends Document {
   user: Types.ObjectId;  // Reference to User in Users Microservice
 }
 
-export const ArtistProfileSchema = SchemaFactory.createForClass(ArtistProfile);
+export const ArtistProfileSchema = SchemaFactory.createForClass(Artist);

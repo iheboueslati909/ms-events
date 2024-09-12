@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { ArtistProfile } from 'src/artist/entities/artist.entity';
+import { Artist } from 'src/artist/entities/artist.entity';
 import { Organizer } from 'src/organizer/entities/organizer.entity';
 
 @Schema({ timestamps: true })
@@ -15,7 +15,7 @@ export class Event extends Document {
   location: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Artist' })
-  artist: ArtistProfile;
+  artist: Artist;
 
   @Prop({ type: Types.ObjectId, ref: 'Organizer' })
   organizer: Organizer;
