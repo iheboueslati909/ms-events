@@ -7,15 +7,28 @@ import { EventModule } from './event/event.module';
 import { OrganizerModule } from './organizer/organizer.module';
 import { ClubModule } from './club/club.module';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+const ENV = process.env.NODE_ENV || 'dev';
+dotenv.config({ path: path.resolve(process.cwd(), `.env.${ENV}`) });
 
 @Module({
-  imports: [MongooseModule.forRoot('mongodb://localhost:27017/events'),
-    ArtistModule, CommonModule, EventModule, OrganizerModule, ClubModule,
+  imports: [
     ConfigModule.forRoot({
-      envFilePath: '.env',
-      isGlobal: true})],
+      isGlobal: true
+    }),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        uri: `mongodb://${configService.get('MONGO_HOST')}:${configService.get('MONGO_PORT')}/${configService.get('MONGO_DB_NAME')}`,
+      }),
+    }),
+    ArtistModule, CommonModule, EventModule, OrganizerModule, ClubModule
+],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
