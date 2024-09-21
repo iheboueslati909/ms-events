@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { ClubService } from './club.service';
 import { CreateClubDto } from './dto/create-club.dto';
 import { UpdateClubDto } from './dto/update-club.dto';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller('club')
 export class ClubController {
@@ -30,5 +31,15 @@ export class ClubController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.clubService.remove(+id);
+  }
+
+  @MessagePattern({ cmd: 'POST/EVENTS_API/CLUB/CREATE' })
+  createClub(@Payload() createClubDto: CreateClubDto) {
+    return this.clubService.create(createClubDto);
+  }
+
+  @MessagePattern({ cmd: 'GET/EVENTS_API/CLUB/ALL'})
+  getClubAll(data: any) {
+    return this.clubService.findAll();
   }
 }
