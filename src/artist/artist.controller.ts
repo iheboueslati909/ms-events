@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { ArtistService } from './artist.service';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller('artist')
 export class ArtistController {
@@ -30,5 +31,15 @@ export class ArtistController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.artistService.remove(+id);
+  }
+
+  @MessagePattern({ cmd: 'POST/EVENTS_API/ARTIST/CREATE' })
+  createArtist(@Payload() createArtistDto: CreateArtistDto) {
+    return this.artistService.create(createArtistDto);
+  }
+
+  @MessagePattern({ cmd: 'GET/EVENTS_API/ARTIST/ALL'})
+  getArtistAll(data: any) {
+    return this.artistService.findAll();
   }
 }

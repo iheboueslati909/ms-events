@@ -20,7 +20,7 @@ export class Artist extends Document {
   socialLinks: string[];
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  user: Types.ObjectId;  // Reference to User in Users Microservice
+  user: Types.ObjectId;
 }
 
 export const ArtistProfileSchema = SchemaFactory.createForClass(Artist);
