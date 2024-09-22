@@ -32,6 +32,7 @@ export class OrganizerController {
   remove(@Param('id') id: string) {
     return this.organizerService.remove(+id);
   }
+  
   @MessagePattern({ cmd: 'POST/EVENTS_API/ORGANIZER/CREATE' })
   createOrganizer(@Payload() createOrganizerDto: CreateOrganizerDto) {
     return this.organizerService.create(createOrganizerDto);

@@ -9,7 +9,10 @@ export class Event extends Document {
   name: string;
 
   @Prop({ required: true })
-  date: Date;
+  dateStart: Date;
+
+  @Prop({ required: true })
+  dateEnd: Date;
 
   @Prop({ required: true })
   location: string;
