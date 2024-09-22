@@ -8,6 +8,7 @@ import { OrganizerModule } from './organizer/organizer.module';
 import { ClubModule } from './club/club.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConceptModule } from './concept/concept.module';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
@@ -26,7 +27,7 @@ dotenv.config({ path: path.resolve(process.cwd(), `.env.${ENV}`) });
         uri: `mongodb://${configService.get('MONGO_HOST')}:${configService.get('MONGO_PORT')}/${configService.get('MONGO_DB_NAME')}`,
       }),
     }),
-    ArtistModule, CommonModule, EventModule, OrganizerModule, ClubModule
+    ArtistModule, CommonModule, EventModule, OrganizerModule, ClubModule, ConceptModule
 ],
   controllers: [AppController],
   providers: [AppService],
