@@ -45,12 +45,9 @@ export class ArtistService {
     return this.toArtistResponse(deletedArtist);
   }
 
-  // Get all artists
-  async findAll(): Promise<ArtistListResponse> {
+  async findAll(): Promise<ArtistResponse[]> {
     const artists = await this.artistModel.find();
-    return {
-      artists: artists.map(artist => this.toArtistResponse(artist)),
-    };
+    return artists.map(artist => this.toArtistResponse(artist));
   }
 
   // Helper method to map Mongoose document to ArtistResponse
