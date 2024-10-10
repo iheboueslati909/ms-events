@@ -1,45 +1,45 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { ArtistService } from './artist.service';
-import { CreateArtistDto } from './dto/create-artist.dto';
+import { GrpcMethod } from '@nestjs/microservices';
+import { Artist } from './entities/artist.entity';
+import { CreateArtistRequest, UpdateArtistRequest, DeleteArtistRequest, GetArtistByIdRequest, ArtistResponse, ArtistListResponse } from '../proto/artist';
+import { Empty } from 'google-protobuf/google/protobuf/empty_pb';
 import { UpdateArtistDto } from './dto/update-artist.dto';
-import { MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller('artist')
 export class ArtistController {
   constructor(private readonly artistService: ArtistService) {}
 
-  @Post()
-  create(@Body() createArtistDto: CreateArtistDto) {
-    return this.artistService.create(createArtistDto);
+  @GrpcMethod('ArtistService', 'GetArtistById')
+  async findOne(data: GetArtistByIdRequest): Promise<ArtistResponse> {
+    const artist = await this.artistService.findOne(data.id);
+    return artist;
   }
 
-  @Get()
-  findAll() {
-    return this.artistService.findAll();
+  @GrpcMethod('ArtistService', 'UpdateArtist')
+  async updateArtist(data: UpdateArtistRequest): Promise<ArtistResponse> {
+    const updateDataDTO = new UpdateArtistDto();
+    const { id, ...updateData } = data;
+    Object.assign(updateDataDTO, data); // map the incoming gRPC request data into the DTO
+    const updatedArtist = await this.artistService.update(id, updateDataDTO);
+    return updatedArtist;
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.artistService.findOne(+id);
+  @GrpcMethod('ArtistService', 'DeleteArtist')
+  async deleteArtist(data: DeleteArtistRequest): Promise<ArtistResponse> {
+    const deletedArtist = await this.artistService.delete(data.id);
+    return deletedArtist;
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateArtistDto: UpdateArtistDto) {
-    return this.artistService.update(+id, updateArtistDto);
+  @GrpcMethod('ArtistService', 'CreateArtist')
+  async createArtist(data: CreateArtistRequest): Promise<ArtistResponse> {
+    const newArtist = await this.artistService.create(data);
+    return newArtist;
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.artistService.remove(+id);
-  }
-
-  @MessagePattern({ cmd: 'POST/EVENTS_API/ARTIST/CREATE' })
-  createArtist(@Payload() createArtistDto: CreateArtistDto) {
-    return this.artistService.create(createArtistDto);
-  }
-
-  @MessagePattern({ cmd: 'GET/EVENTS_API/ARTIST/ALL'})
-  getArtistAll(data: any) {
-    return this.artistService.findAll();
+  @GrpcMethod('ArtistService', 'GetAllArtists')
+  async findAll(data: Empty): Promise<ArtistListResponse> {
+    const artists = await this.artistService.findAll();
+    return { artists };
   }
 }

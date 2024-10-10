@@ -21,6 +21,12 @@ export class Artist extends Document {
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   user: Types.ObjectId;
+
+  @Prop({ type: Date, default: Date.now })
+  createdAt: Date;
+
+  @Prop({ type: Date, default: Date.now, index: true })
+  updatedAt: Date;
 }
 
 export const ArtistProfileSchema = SchemaFactory.createForClass(Artist);

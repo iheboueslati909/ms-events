@@ -1,26 +1,33 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
-import { Transport } from '@nestjs/microservices';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { ValidationPipe } from '@nestjs/common';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
+    transport: Transport.GRPC,
+    options: {
+      package: 'hero',
+      protoPath: join(__dirname, 'hero/hero.proto'),
+    },
+  });
   const configService = app.get(ConfigService);
   const port = configService.get<number>('APP_PORT');
   const host = configService.get<string>('APP_HOST');
 
-  const microservice = app.connectMicroservice({
+  /*const microservice = app.connectMicroservice({
     transport: Transport.TCP,
     options: {
       host: host,
       port: port,
     },
-  });
+  });*/
 
   app.useGlobalPipes(new ValidationPipe());
-  await app.listen(port);
-  await microservice.listen();
+  //await app.listen(port);
+  //await microservice.listen();
 
   console.log("env = ", process.env.NODE_ENV , " host:port = " , host,":",port);
 }

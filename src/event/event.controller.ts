@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { GrpcMethod, MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller('event')
 export class EventController {
@@ -41,5 +41,10 @@ export class EventController {
   @MessagePattern({ cmd: 'GET/EVENTS_API/EVENT/ALL'})
   getEventAll(data: any) {
     return this.eventService.findAll();
+  }
+
+  @GrpcMethod('HelloService', 'SayHello')
+  sayHello(data: any): { message: string } {
+    return { message: 'Hello, World!' };
   }
 }
