@@ -28,8 +28,9 @@ export class ArtistService {
   }
 
   // Update artist details
-  async update(id: string, updateData: UpdateArtistDto): Promise<ArtistResponse> {
-    const updatedArtist = await this.artistModel.findByIdAndUpdate(id, updateData, { new: true });
+  async update(data: UpdateArtistRequest): Promise<ArtistResponse> {
+    const id = data.id;
+    const updatedArtist = await this.artistModel.findByIdAndUpdate(id, data, { new: true });
     if (!updatedArtist) {
       throw new NotFoundException(`Artist with ID ${id} not found`);
     }

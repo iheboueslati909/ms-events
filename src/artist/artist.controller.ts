@@ -18,10 +18,7 @@ export class ArtistController {
 
   @GrpcMethod('ArtistService', 'UpdateArtist')
   async updateArtist(data: UpdateArtistRequest): Promise<ArtistResponse> {
-    const updateDataDTO = new UpdateArtistDto();
-    const { id, ...updateData } = data;
-    Object.assign(updateDataDTO, data); // map the incoming gRPC request data into the DTO
-    const updatedArtist = await this.artistService.update(id, updateDataDTO);
+    const updatedArtist = await this.artistService.update(data);
     return updatedArtist;
   }
 

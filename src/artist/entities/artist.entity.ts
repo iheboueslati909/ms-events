@@ -29,4 +29,4 @@ export class Artist extends Document {
   updatedAt: Date;
 }
 
-export const ArtistProfileSchema = SchemaFactory.createForClass(Artist);
+export const ArtistSchema = SchemaFactory.createForClass(Artist);
