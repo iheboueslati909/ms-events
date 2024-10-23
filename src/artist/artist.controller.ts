@@ -2,7 +2,7 @@ import { Controller } from '@nestjs/common';
 import { ArtistService } from './artist.service';
 import { GrpcMethod } from '@nestjs/microservices';
 import { Artist } from './entities/artist.entity';
-import { CreateArtistRequest, UpdateArtistRequest, DeleteArtistRequest, GetArtistByIdRequest, ArtistResponse, ArtistListResponse } from '../proto/artist';
+import { CreateArtistRequest, UpdateArtistRequest, DeleteArtistRequest, GetArtistByIdRequest, ArtistResponse, ArtistListResponse } from '../proto/events-app';
 import { Empty } from 'google-protobuf/google/protobuf/empty_pb';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 

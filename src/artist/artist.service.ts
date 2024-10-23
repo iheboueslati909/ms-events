@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Artist } from './entities/artist.entity';
-import { CreateArtistRequest, UpdateArtistRequest, ArtistResponse, ArtistListResponse } from '../proto/artist';
+import { CreateArtistRequest, UpdateArtistRequest, ArtistResponse, ArtistListResponse } from '../proto/events-app';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 
 @Injectable()
