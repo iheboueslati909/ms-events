@@ -9,25 +9,19 @@ async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
     transport: Transport.GRPC,
     options: {
-      package: 'hero',
-      protoPath: join(__dirname, 'hero/hero.proto'),
+      package: 'eventsms',
+      protoPath: join(__dirname, '../proto/events-app.proto'),
+      url: 'localhost:3002', 
     },
   });
+
   const configService = app.get(ConfigService);
+  
   const port = configService.get<number>('APP_PORT');
   const host = configService.get<string>('APP_HOST');
 
-  /*const microservice = app.connectMicroservice({
-    transport: Transport.TCP,
-    options: {
-      host: host,
-      port: port,
-    },
-  });*/
-
   app.useGlobalPipes(new ValidationPipe());
-  //await app.listen(port);
-  //await microservice.listen();
+  await app.listen();
 
   console.log("env = ", process.env.NODE_ENV , " host:port = " , host,":",port);
 }

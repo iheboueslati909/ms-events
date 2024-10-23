@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package eventsms;  // Renamed from 'hero' to 'eventsms'
+
+service HealthCheck {
+  rpc Check(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  bool healthy = 1;
+}
