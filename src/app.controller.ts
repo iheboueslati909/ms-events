@@ -6,11 +6,6 @@ import { GrpcMethod } from '@nestjs/microservices';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
-  }
-
   @GrpcMethod('HealthCheck', 'Check')
   check(): { healthy: boolean } {
     return { healthy: true };

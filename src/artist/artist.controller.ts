@@ -11,31 +11,31 @@ export class ArtistController {
   constructor(private readonly artistService: ArtistService) {}
 
   @GrpcMethod('ArtistService', 'GetArtistById')
-  async findOne(data: GetArtistByIdRequest): Promise<ArtistResponse> {
+  async GetArtistById(data: GetArtistByIdRequest): Promise<ArtistResponse> {
     const artist = await this.artistService.findOne(data.id);
     return artist;
   }
 
   @GrpcMethod('ArtistService', 'UpdateArtist')
-  async updateArtist(data: UpdateArtistRequest): Promise<ArtistResponse> {
+  async UpdateArtist(data: UpdateArtistRequest): Promise<ArtistResponse> {
     const updatedArtist = await this.artistService.update(data);
     return updatedArtist;
   }
 
   @GrpcMethod('ArtistService', 'DeleteArtist')
-  async deleteArtist(data: DeleteArtistRequest): Promise<ArtistResponse> {
+  async DeleteArtist(data: DeleteArtistRequest): Promise<ArtistResponse> {
     const deletedArtist = await this.artistService.delete(data.id);
     return deletedArtist;
   }
 
   @GrpcMethod('ArtistService', 'CreateArtist')
-  async createArtist(data: CreateArtistRequest): Promise<ArtistResponse> {
+  async CreateArtist(data: CreateArtistRequest): Promise<ArtistResponse> {
     const newArtist = await this.artistService.create(data);
     return newArtist;
   }
 
   @GrpcMethod('ArtistService', 'GetAllArtists')
-  async findAll(data: Empty): Promise<ArtistListResponse> {
+  async GetAllArtists(data: Empty): Promise<ArtistListResponse> {
     const artists = await this.artistService.findAll();
     return { artists };
   }
