@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { Event } from './event.entity';
+import { Event } from 'src/event/entities/event.entity';
 import { Artist } from 'src/artist/entities/artist.entity';
 import { Organizer } from 'src/organizer/entities/organizer.entity';
-import { EventStatus } from '../enums/event-status.enum';
+import { EventStatus } from 'src/event/enums/event-status.enum';
 
 @Schema({ timestamps: true })
 export class Booking extends Document {

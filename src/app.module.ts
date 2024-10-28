@@ -12,6 +12,7 @@ import { ConceptModule } from './concept/concept.module';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { ClientsModule, Transport } from "@nestjs/microservices";
+import { BookingModule } from './booking/booking.module';
 
 const ENV = process.env.NODE_ENV || 'dev';
 dotenv.config({ path: path.resolve(process.cwd(), `.env.${ENV}`) });
@@ -38,7 +39,7 @@ dotenv.config({ path: path.resolve(process.cwd(), `.env.${ENV}`) });
         }
       },
     ]),
-    ArtistModule, CommonModule, EventModule, OrganizerModule, ClubModule, ConceptModule
+    ArtistModule, CommonModule, EventModule, OrganizerModule, ClubModule, ConceptModule, BookingModule
 ],
   controllers: [AppController],
   providers: [AppService],

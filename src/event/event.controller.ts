@@ -34,10 +34,7 @@ export class EventController {
     return {events};
   }
 
-  @GrpcMethod('BookingService', 'CreateBooking')
-  createBooking(data: CreateBookingRequest) {
-    return this.eventService.createBooking(data);
-  }
+
 }
 
 
