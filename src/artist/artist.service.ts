@@ -61,8 +61,8 @@ export class ArtistService {
       availability: artist.availability,
       socialLinks: artist.socialLinks,
       user: artist.user.toString(),
-      createdAt: artist.createdAt.toISOString(),
-      updatedAt: artist.updatedAt.toISOString(),
+      createdAt: artist.createdAt,
+      updatedAt: artist.updatedAt
     };
   }
 

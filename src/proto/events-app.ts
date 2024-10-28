@@ -7,6 +7,7 @@
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 import { Empty } from "../../google/protobuf/empty";
+import { Timestamp } from "../../google/protobuf/timestamp";
 
 export const protobufPackage = "eventsms";
 
@@ -52,12 +53,145 @@ export interface ArtistResponse {
   availability: boolean;
   socialLinks: string[];
   user: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date | undefined;
+  updatedAt: Date | undefined;
 }
 
 export interface ArtistListResponse {
   artists: ArtistResponse[];
+}
+
+export interface CreateClubRequest {
+  name: string;
+  location: string;
+  capacity: number;
+  description: string;
+  googleMapsLink: string;
+}
+
+export interface GetClubByIdRequest {
+  id: string;
+}
+
+export interface UpdateClubRequest {
+  id: string;
+  name: string;
+  location: string;
+  capacity: number;
+  description: string;
+  googleMapsLink: string;
+}
+
+export interface DeleteClubRequest {
+  id: string;
+}
+
+export interface ClubResponse {
+  id: string;
+  name: string;
+  location: string;
+  capacity: number;
+  description: string;
+  googleMapsLink: string;
+  /** IDs of associated events */
+  events: string[];
+  createdAt: Date | undefined;
+  updatedAt: Date | undefined;
+}
+
+export interface ClubListResponse {
+  clubs: ClubResponse[];
+}
+
+export interface CreateEventRequest {
+  name: string;
+  location: string;
+  dateStart: string;
+  dateEnd: string;
+  /** Artist ID */
+  artist: string;
+  /** Organizer ID */
+  organizer: string;
+  ticketPrice: number;
+}
+
+export interface GetEventByIdRequest {
+  id: string;
+}
+
+export interface UpdateEventRequest {
+  id: string;
+  name: string;
+  location: string;
+  dateStart: string;
+  dateEnd: string;
+  artist: string;
+  organizer: string;
+  ticketPrice: number;
+}
+
+export interface DeleteEventRequest {
+  id: string;
+}
+
+export interface EventResponse {
+  id: string;
+  name: string;
+  location: string;
+  dateStart: string;
+  dateEnd: string;
+  artist: string;
+  organizer: string;
+  ticketPrice: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EventListResponse {
+  events: EventResponse[];
+}
+
+export interface CreateBookingRequest {
+  /** Event ID */
+  event: string;
+  /** Artist ID */
+  artist: string;
+  /** Client ID */
+  client: string;
+  bookingDate: string;
+  status: string;
+}
+
+export interface GetBookingByIdRequest {
+  id: string;
+}
+
+export interface UpdateBookingRequest {
+  id: string;
+  event: string;
+  artist: string;
+  client: string;
+  bookingDate: string;
+  status: string;
+}
+
+export interface DeleteBookingRequest {
+  id: string;
+}
+
+export interface BookingResponse {
+  id: string;
+  event: string;
+  artist: string;
+  client: string;
+  bookingDate: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BookingListResponse {
+  bookings: BookingResponse[];
 }
 
 function createBaseHealthCheckRequest(): HealthCheckRequest {
@@ -586,8 +720,8 @@ function createBaseArtistResponse(): ArtistResponse {
     availability: false,
     socialLinks: [],
     user: "",
-    createdAt: "",
-    updatedAt: "",
+    createdAt: undefined,
+    updatedAt: undefined,
   };
 }
 
@@ -614,11 +748,11 @@ export const ArtistResponse: MessageFns<ArtistResponse> = {
     if (message.user !== "") {
       writer.uint32(58).string(message.user);
     }
-    if (message.createdAt !== "") {
-      writer.uint32(66).string(message.createdAt);
+    if (message.createdAt !== undefined) {
+      Timestamp.encode(toTimestamp(message.createdAt), writer.uint32(66).fork()).join();
     }
-    if (message.updatedAt !== "") {
-      writer.uint32(74).string(message.updatedAt);
+    if (message.updatedAt !== undefined) {
+      Timestamp.encode(toTimestamp(message.updatedAt), writer.uint32(74).fork()).join();
     }
     return writer;
   },
@@ -691,7 +825,7 @@ export const ArtistResponse: MessageFns<ArtistResponse> = {
             break;
           }
 
-          message.createdAt = reader.string();
+          message.createdAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
         case 9: {
@@ -699,7 +833,7 @@ export const ArtistResponse: MessageFns<ArtistResponse> = {
             break;
           }
 
-          message.updatedAt = reader.string();
+          message.updatedAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -722,8 +856,8 @@ export const ArtistResponse: MessageFns<ArtistResponse> = {
         ? object.socialLinks.map((e: any) => globalThis.String(e))
         : [],
       user: isSet(object.user) ? globalThis.String(object.user) : "",
-      createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
-      updatedAt: isSet(object.updatedAt) ? globalThis.String(object.updatedAt) : "",
+      createdAt: isSet(object.createdAt) ? fromJsonTimestamp(object.createdAt) : undefined,
+      updatedAt: isSet(object.updatedAt) ? fromJsonTimestamp(object.updatedAt) : undefined,
     };
   },
 
@@ -750,11 +884,11 @@ export const ArtistResponse: MessageFns<ArtistResponse> = {
     if (message.user !== "") {
       obj.user = message.user;
     }
-    if (message.createdAt !== "") {
-      obj.createdAt = message.createdAt;
+    if (message.createdAt !== undefined) {
+      obj.createdAt = message.createdAt.toISOString();
     }
-    if (message.updatedAt !== "") {
-      obj.updatedAt = message.updatedAt;
+    if (message.updatedAt !== undefined) {
+      obj.updatedAt = message.updatedAt.toISOString();
     }
     return obj;
   },
@@ -771,8 +905,8 @@ export const ArtistResponse: MessageFns<ArtistResponse> = {
     message.availability = object.availability ?? false;
     message.socialLinks = object.socialLinks?.map((e) => e) || [];
     message.user = object.user ?? "";
-    message.createdAt = object.createdAt ?? "";
-    message.updatedAt = object.updatedAt ?? "";
+    message.createdAt = object.createdAt ?? undefined;
+    message.updatedAt = object.updatedAt ?? undefined;
     return message;
   },
 };
@@ -835,6 +969,1977 @@ export const ArtistListResponse: MessageFns<ArtistListResponse> = {
   fromPartial<I extends Exact<DeepPartial<ArtistListResponse>, I>>(object: I): ArtistListResponse {
     const message = createBaseArtistListResponse();
     message.artists = object.artists?.map((e) => ArtistResponse.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseCreateClubRequest(): CreateClubRequest {
+  return { name: "", location: "", capacity: 0, description: "", googleMapsLink: "" };
+}
+
+export const CreateClubRequest: MessageFns<CreateClubRequest> = {
+  encode(message: CreateClubRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.location !== "") {
+      writer.uint32(18).string(message.location);
+    }
+    if (message.capacity !== 0) {
+      writer.uint32(24).int32(message.capacity);
+    }
+    if (message.description !== "") {
+      writer.uint32(34).string(message.description);
+    }
+    if (message.googleMapsLink !== "") {
+      writer.uint32(42).string(message.googleMapsLink);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): CreateClubRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCreateClubRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.location = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.capacity = reader.int32();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.googleMapsLink = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CreateClubRequest {
+    return {
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      location: isSet(object.location) ? globalThis.String(object.location) : "",
+      capacity: isSet(object.capacity) ? globalThis.Number(object.capacity) : 0,
+      description: isSet(object.description) ? globalThis.String(object.description) : "",
+      googleMapsLink: isSet(object.googleMapsLink) ? globalThis.String(object.googleMapsLink) : "",
+    };
+  },
+
+  toJSON(message: CreateClubRequest): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.location !== "") {
+      obj.location = message.location;
+    }
+    if (message.capacity !== 0) {
+      obj.capacity = Math.round(message.capacity);
+    }
+    if (message.description !== "") {
+      obj.description = message.description;
+    }
+    if (message.googleMapsLink !== "") {
+      obj.googleMapsLink = message.googleMapsLink;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CreateClubRequest>, I>>(base?: I): CreateClubRequest {
+    return CreateClubRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CreateClubRequest>, I>>(object: I): CreateClubRequest {
+    const message = createBaseCreateClubRequest();
+    message.name = object.name ?? "";
+    message.location = object.location ?? "";
+    message.capacity = object.capacity ?? 0;
+    message.description = object.description ?? "";
+    message.googleMapsLink = object.googleMapsLink ?? "";
+    return message;
+  },
+};
+
+function createBaseGetClubByIdRequest(): GetClubByIdRequest {
+  return { id: "" };
+}
+
+export const GetClubByIdRequest: MessageFns<GetClubByIdRequest> = {
+  encode(message: GetClubByIdRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetClubByIdRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetClubByIdRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetClubByIdRequest {
+    return { id: isSet(object.id) ? globalThis.String(object.id) : "" };
+  },
+
+  toJSON(message: GetClubByIdRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetClubByIdRequest>, I>>(base?: I): GetClubByIdRequest {
+    return GetClubByIdRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetClubByIdRequest>, I>>(object: I): GetClubByIdRequest {
+    const message = createBaseGetClubByIdRequest();
+    message.id = object.id ?? "";
+    return message;
+  },
+};
+
+function createBaseUpdateClubRequest(): UpdateClubRequest {
+  return { id: "", name: "", location: "", capacity: 0, description: "", googleMapsLink: "" };
+}
+
+export const UpdateClubRequest: MessageFns<UpdateClubRequest> = {
+  encode(message: UpdateClubRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    if (message.location !== "") {
+      writer.uint32(26).string(message.location);
+    }
+    if (message.capacity !== 0) {
+      writer.uint32(32).int32(message.capacity);
+    }
+    if (message.description !== "") {
+      writer.uint32(42).string(message.description);
+    }
+    if (message.googleMapsLink !== "") {
+      writer.uint32(50).string(message.googleMapsLink);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UpdateClubRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateClubRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.location = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.capacity = reader.int32();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.googleMapsLink = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdateClubRequest {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      location: isSet(object.location) ? globalThis.String(object.location) : "",
+      capacity: isSet(object.capacity) ? globalThis.Number(object.capacity) : 0,
+      description: isSet(object.description) ? globalThis.String(object.description) : "",
+      googleMapsLink: isSet(object.googleMapsLink) ? globalThis.String(object.googleMapsLink) : "",
+    };
+  },
+
+  toJSON(message: UpdateClubRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.location !== "") {
+      obj.location = message.location;
+    }
+    if (message.capacity !== 0) {
+      obj.capacity = Math.round(message.capacity);
+    }
+    if (message.description !== "") {
+      obj.description = message.description;
+    }
+    if (message.googleMapsLink !== "") {
+      obj.googleMapsLink = message.googleMapsLink;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateClubRequest>, I>>(base?: I): UpdateClubRequest {
+    return UpdateClubRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UpdateClubRequest>, I>>(object: I): UpdateClubRequest {
+    const message = createBaseUpdateClubRequest();
+    message.id = object.id ?? "";
+    message.name = object.name ?? "";
+    message.location = object.location ?? "";
+    message.capacity = object.capacity ?? 0;
+    message.description = object.description ?? "";
+    message.googleMapsLink = object.googleMapsLink ?? "";
+    return message;
+  },
+};
+
+function createBaseDeleteClubRequest(): DeleteClubRequest {
+  return { id: "" };
+}
+
+export const DeleteClubRequest: MessageFns<DeleteClubRequest> = {
+  encode(message: DeleteClubRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DeleteClubRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDeleteClubRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DeleteClubRequest {
+    return { id: isSet(object.id) ? globalThis.String(object.id) : "" };
+  },
+
+  toJSON(message: DeleteClubRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DeleteClubRequest>, I>>(base?: I): DeleteClubRequest {
+    return DeleteClubRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DeleteClubRequest>, I>>(object: I): DeleteClubRequest {
+    const message = createBaseDeleteClubRequest();
+    message.id = object.id ?? "";
+    return message;
+  },
+};
+
+function createBaseClubResponse(): ClubResponse {
+  return {
+    id: "",
+    name: "",
+    location: "",
+    capacity: 0,
+    description: "",
+    googleMapsLink: "",
+    events: [],
+    createdAt: undefined,
+    updatedAt: undefined,
+  };
+}
+
+export const ClubResponse: MessageFns<ClubResponse> = {
+  encode(message: ClubResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    if (message.location !== "") {
+      writer.uint32(26).string(message.location);
+    }
+    if (message.capacity !== 0) {
+      writer.uint32(32).int32(message.capacity);
+    }
+    if (message.description !== "") {
+      writer.uint32(42).string(message.description);
+    }
+    if (message.googleMapsLink !== "") {
+      writer.uint32(50).string(message.googleMapsLink);
+    }
+    for (const v of message.events) {
+      writer.uint32(58).string(v!);
+    }
+    if (message.createdAt !== undefined) {
+      Timestamp.encode(toTimestamp(message.createdAt), writer.uint32(66).fork()).join();
+    }
+    if (message.updatedAt !== undefined) {
+      Timestamp.encode(toTimestamp(message.updatedAt), writer.uint32(74).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ClubResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseClubResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.location = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.capacity = reader.int32();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.googleMapsLink = reader.string();
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.events.push(reader.string());
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.createdAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.updatedAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ClubResponse {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      location: isSet(object.location) ? globalThis.String(object.location) : "",
+      capacity: isSet(object.capacity) ? globalThis.Number(object.capacity) : 0,
+      description: isSet(object.description) ? globalThis.String(object.description) : "",
+      googleMapsLink: isSet(object.googleMapsLink) ? globalThis.String(object.googleMapsLink) : "",
+      events: globalThis.Array.isArray(object?.events) ? object.events.map((e: any) => globalThis.String(e)) : [],
+      createdAt: isSet(object.createdAt) ? fromJsonTimestamp(object.createdAt) : undefined,
+      updatedAt: isSet(object.updatedAt) ? fromJsonTimestamp(object.updatedAt) : undefined,
+    };
+  },
+
+  toJSON(message: ClubResponse): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.location !== "") {
+      obj.location = message.location;
+    }
+    if (message.capacity !== 0) {
+      obj.capacity = Math.round(message.capacity);
+    }
+    if (message.description !== "") {
+      obj.description = message.description;
+    }
+    if (message.googleMapsLink !== "") {
+      obj.googleMapsLink = message.googleMapsLink;
+    }
+    if (message.events?.length) {
+      obj.events = message.events;
+    }
+    if (message.createdAt !== undefined) {
+      obj.createdAt = message.createdAt.toISOString();
+    }
+    if (message.updatedAt !== undefined) {
+      obj.updatedAt = message.updatedAt.toISOString();
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ClubResponse>, I>>(base?: I): ClubResponse {
+    return ClubResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ClubResponse>, I>>(object: I): ClubResponse {
+    const message = createBaseClubResponse();
+    message.id = object.id ?? "";
+    message.name = object.name ?? "";
+    message.location = object.location ?? "";
+    message.capacity = object.capacity ?? 0;
+    message.description = object.description ?? "";
+    message.googleMapsLink = object.googleMapsLink ?? "";
+    message.events = object.events?.map((e) => e) || [];
+    message.createdAt = object.createdAt ?? undefined;
+    message.updatedAt = object.updatedAt ?? undefined;
+    return message;
+  },
+};
+
+function createBaseClubListResponse(): ClubListResponse {
+  return { clubs: [] };
+}
+
+export const ClubListResponse: MessageFns<ClubListResponse> = {
+  encode(message: ClubListResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.clubs) {
+      ClubResponse.encode(v!, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ClubListResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseClubListResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.clubs.push(ClubResponse.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ClubListResponse {
+    return {
+      clubs: globalThis.Array.isArray(object?.clubs) ? object.clubs.map((e: any) => ClubResponse.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: ClubListResponse): unknown {
+    const obj: any = {};
+    if (message.clubs?.length) {
+      obj.clubs = message.clubs.map((e) => ClubResponse.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ClubListResponse>, I>>(base?: I): ClubListResponse {
+    return ClubListResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ClubListResponse>, I>>(object: I): ClubListResponse {
+    const message = createBaseClubListResponse();
+    message.clubs = object.clubs?.map((e) => ClubResponse.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseCreateEventRequest(): CreateEventRequest {
+  return { name: "", location: "", dateStart: "", dateEnd: "", artist: "", organizer: "", ticketPrice: 0 };
+}
+
+export const CreateEventRequest: MessageFns<CreateEventRequest> = {
+  encode(message: CreateEventRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.location !== "") {
+      writer.uint32(18).string(message.location);
+    }
+    if (message.dateStart !== "") {
+      writer.uint32(26).string(message.dateStart);
+    }
+    if (message.dateEnd !== "") {
+      writer.uint32(34).string(message.dateEnd);
+    }
+    if (message.artist !== "") {
+      writer.uint32(42).string(message.artist);
+    }
+    if (message.organizer !== "") {
+      writer.uint32(50).string(message.organizer);
+    }
+    if (message.ticketPrice !== 0) {
+      writer.uint32(57).double(message.ticketPrice);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): CreateEventRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCreateEventRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.location = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.dateStart = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.dateEnd = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.artist = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.organizer = reader.string();
+          continue;
+        }
+        case 7: {
+          if (tag !== 57) {
+            break;
+          }
+
+          message.ticketPrice = reader.double();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CreateEventRequest {
+    return {
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      location: isSet(object.location) ? globalThis.String(object.location) : "",
+      dateStart: isSet(object.dateStart) ? globalThis.String(object.dateStart) : "",
+      dateEnd: isSet(object.dateEnd) ? globalThis.String(object.dateEnd) : "",
+      artist: isSet(object.artist) ? globalThis.String(object.artist) : "",
+      organizer: isSet(object.organizer) ? globalThis.String(object.organizer) : "",
+      ticketPrice: isSet(object.ticketPrice) ? globalThis.Number(object.ticketPrice) : 0,
+    };
+  },
+
+  toJSON(message: CreateEventRequest): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.location !== "") {
+      obj.location = message.location;
+    }
+    if (message.dateStart !== "") {
+      obj.dateStart = message.dateStart;
+    }
+    if (message.dateEnd !== "") {
+      obj.dateEnd = message.dateEnd;
+    }
+    if (message.artist !== "") {
+      obj.artist = message.artist;
+    }
+    if (message.organizer !== "") {
+      obj.organizer = message.organizer;
+    }
+    if (message.ticketPrice !== 0) {
+      obj.ticketPrice = message.ticketPrice;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CreateEventRequest>, I>>(base?: I): CreateEventRequest {
+    return CreateEventRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CreateEventRequest>, I>>(object: I): CreateEventRequest {
+    const message = createBaseCreateEventRequest();
+    message.name = object.name ?? "";
+    message.location = object.location ?? "";
+    message.dateStart = object.dateStart ?? "";
+    message.dateEnd = object.dateEnd ?? "";
+    message.artist = object.artist ?? "";
+    message.organizer = object.organizer ?? "";
+    message.ticketPrice = object.ticketPrice ?? 0;
+    return message;
+  },
+};
+
+function createBaseGetEventByIdRequest(): GetEventByIdRequest {
+  return { id: "" };
+}
+
+export const GetEventByIdRequest: MessageFns<GetEventByIdRequest> = {
+  encode(message: GetEventByIdRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetEventByIdRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetEventByIdRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetEventByIdRequest {
+    return { id: isSet(object.id) ? globalThis.String(object.id) : "" };
+  },
+
+  toJSON(message: GetEventByIdRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetEventByIdRequest>, I>>(base?: I): GetEventByIdRequest {
+    return GetEventByIdRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetEventByIdRequest>, I>>(object: I): GetEventByIdRequest {
+    const message = createBaseGetEventByIdRequest();
+    message.id = object.id ?? "";
+    return message;
+  },
+};
+
+function createBaseUpdateEventRequest(): UpdateEventRequest {
+  return { id: "", name: "", location: "", dateStart: "", dateEnd: "", artist: "", organizer: "", ticketPrice: 0 };
+}
+
+export const UpdateEventRequest: MessageFns<UpdateEventRequest> = {
+  encode(message: UpdateEventRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    if (message.location !== "") {
+      writer.uint32(26).string(message.location);
+    }
+    if (message.dateStart !== "") {
+      writer.uint32(34).string(message.dateStart);
+    }
+    if (message.dateEnd !== "") {
+      writer.uint32(42).string(message.dateEnd);
+    }
+    if (message.artist !== "") {
+      writer.uint32(50).string(message.artist);
+    }
+    if (message.organizer !== "") {
+      writer.uint32(58).string(message.organizer);
+    }
+    if (message.ticketPrice !== 0) {
+      writer.uint32(65).double(message.ticketPrice);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UpdateEventRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateEventRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.location = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.dateStart = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.dateEnd = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.artist = reader.string();
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.organizer = reader.string();
+          continue;
+        }
+        case 8: {
+          if (tag !== 65) {
+            break;
+          }
+
+          message.ticketPrice = reader.double();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdateEventRequest {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      location: isSet(object.location) ? globalThis.String(object.location) : "",
+      dateStart: isSet(object.dateStart) ? globalThis.String(object.dateStart) : "",
+      dateEnd: isSet(object.dateEnd) ? globalThis.String(object.dateEnd) : "",
+      artist: isSet(object.artist) ? globalThis.String(object.artist) : "",
+      organizer: isSet(object.organizer) ? globalThis.String(object.organizer) : "",
+      ticketPrice: isSet(object.ticketPrice) ? globalThis.Number(object.ticketPrice) : 0,
+    };
+  },
+
+  toJSON(message: UpdateEventRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.location !== "") {
+      obj.location = message.location;
+    }
+    if (message.dateStart !== "") {
+      obj.dateStart = message.dateStart;
+    }
+    if (message.dateEnd !== "") {
+      obj.dateEnd = message.dateEnd;
+    }
+    if (message.artist !== "") {
+      obj.artist = message.artist;
+    }
+    if (message.organizer !== "") {
+      obj.organizer = message.organizer;
+    }
+    if (message.ticketPrice !== 0) {
+      obj.ticketPrice = message.ticketPrice;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateEventRequest>, I>>(base?: I): UpdateEventRequest {
+    return UpdateEventRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UpdateEventRequest>, I>>(object: I): UpdateEventRequest {
+    const message = createBaseUpdateEventRequest();
+    message.id = object.id ?? "";
+    message.name = object.name ?? "";
+    message.location = object.location ?? "";
+    message.dateStart = object.dateStart ?? "";
+    message.dateEnd = object.dateEnd ?? "";
+    message.artist = object.artist ?? "";
+    message.organizer = object.organizer ?? "";
+    message.ticketPrice = object.ticketPrice ?? 0;
+    return message;
+  },
+};
+
+function createBaseDeleteEventRequest(): DeleteEventRequest {
+  return { id: "" };
+}
+
+export const DeleteEventRequest: MessageFns<DeleteEventRequest> = {
+  encode(message: DeleteEventRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DeleteEventRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDeleteEventRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DeleteEventRequest {
+    return { id: isSet(object.id) ? globalThis.String(object.id) : "" };
+  },
+
+  toJSON(message: DeleteEventRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DeleteEventRequest>, I>>(base?: I): DeleteEventRequest {
+    return DeleteEventRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DeleteEventRequest>, I>>(object: I): DeleteEventRequest {
+    const message = createBaseDeleteEventRequest();
+    message.id = object.id ?? "";
+    return message;
+  },
+};
+
+function createBaseEventResponse(): EventResponse {
+  return {
+    id: "",
+    name: "",
+    location: "",
+    dateStart: "",
+    dateEnd: "",
+    artist: "",
+    organizer: "",
+    ticketPrice: 0,
+    createdAt: "",
+    updatedAt: "",
+  };
+}
+
+export const EventResponse: MessageFns<EventResponse> = {
+  encode(message: EventResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    if (message.location !== "") {
+      writer.uint32(26).string(message.location);
+    }
+    if (message.dateStart !== "") {
+      writer.uint32(34).string(message.dateStart);
+    }
+    if (message.dateEnd !== "") {
+      writer.uint32(42).string(message.dateEnd);
+    }
+    if (message.artist !== "") {
+      writer.uint32(50).string(message.artist);
+    }
+    if (message.organizer !== "") {
+      writer.uint32(58).string(message.organizer);
+    }
+    if (message.ticketPrice !== 0) {
+      writer.uint32(65).double(message.ticketPrice);
+    }
+    if (message.createdAt !== "") {
+      writer.uint32(74).string(message.createdAt);
+    }
+    if (message.updatedAt !== "") {
+      writer.uint32(82).string(message.updatedAt);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): EventResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseEventResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.location = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.dateStart = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.dateEnd = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.artist = reader.string();
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.organizer = reader.string();
+          continue;
+        }
+        case 8: {
+          if (tag !== 65) {
+            break;
+          }
+
+          message.ticketPrice = reader.double();
+          continue;
+        }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.createdAt = reader.string();
+          continue;
+        }
+        case 10: {
+          if (tag !== 82) {
+            break;
+          }
+
+          message.updatedAt = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): EventResponse {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      location: isSet(object.location) ? globalThis.String(object.location) : "",
+      dateStart: isSet(object.dateStart) ? globalThis.String(object.dateStart) : "",
+      dateEnd: isSet(object.dateEnd) ? globalThis.String(object.dateEnd) : "",
+      artist: isSet(object.artist) ? globalThis.String(object.artist) : "",
+      organizer: isSet(object.organizer) ? globalThis.String(object.organizer) : "",
+      ticketPrice: isSet(object.ticketPrice) ? globalThis.Number(object.ticketPrice) : 0,
+      createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
+      updatedAt: isSet(object.updatedAt) ? globalThis.String(object.updatedAt) : "",
+    };
+  },
+
+  toJSON(message: EventResponse): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.location !== "") {
+      obj.location = message.location;
+    }
+    if (message.dateStart !== "") {
+      obj.dateStart = message.dateStart;
+    }
+    if (message.dateEnd !== "") {
+      obj.dateEnd = message.dateEnd;
+    }
+    if (message.artist !== "") {
+      obj.artist = message.artist;
+    }
+    if (message.organizer !== "") {
+      obj.organizer = message.organizer;
+    }
+    if (message.ticketPrice !== 0) {
+      obj.ticketPrice = message.ticketPrice;
+    }
+    if (message.createdAt !== "") {
+      obj.createdAt = message.createdAt;
+    }
+    if (message.updatedAt !== "") {
+      obj.updatedAt = message.updatedAt;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<EventResponse>, I>>(base?: I): EventResponse {
+    return EventResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<EventResponse>, I>>(object: I): EventResponse {
+    const message = createBaseEventResponse();
+    message.id = object.id ?? "";
+    message.name = object.name ?? "";
+    message.location = object.location ?? "";
+    message.dateStart = object.dateStart ?? "";
+    message.dateEnd = object.dateEnd ?? "";
+    message.artist = object.artist ?? "";
+    message.organizer = object.organizer ?? "";
+    message.ticketPrice = object.ticketPrice ?? 0;
+    message.createdAt = object.createdAt ?? "";
+    message.updatedAt = object.updatedAt ?? "";
+    return message;
+  },
+};
+
+function createBaseEventListResponse(): EventListResponse {
+  return { events: [] };
+}
+
+export const EventListResponse: MessageFns<EventListResponse> = {
+  encode(message: EventListResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.events) {
+      EventResponse.encode(v!, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): EventListResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseEventListResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.events.push(EventResponse.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): EventListResponse {
+    return {
+      events: globalThis.Array.isArray(object?.events) ? object.events.map((e: any) => EventResponse.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: EventListResponse): unknown {
+    const obj: any = {};
+    if (message.events?.length) {
+      obj.events = message.events.map((e) => EventResponse.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<EventListResponse>, I>>(base?: I): EventListResponse {
+    return EventListResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<EventListResponse>, I>>(object: I): EventListResponse {
+    const message = createBaseEventListResponse();
+    message.events = object.events?.map((e) => EventResponse.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseCreateBookingRequest(): CreateBookingRequest {
+  return { event: "", artist: "", client: "", bookingDate: "", status: "" };
+}
+
+export const CreateBookingRequest: MessageFns<CreateBookingRequest> = {
+  encode(message: CreateBookingRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.event !== "") {
+      writer.uint32(10).string(message.event);
+    }
+    if (message.artist !== "") {
+      writer.uint32(18).string(message.artist);
+    }
+    if (message.client !== "") {
+      writer.uint32(26).string(message.client);
+    }
+    if (message.bookingDate !== "") {
+      writer.uint32(34).string(message.bookingDate);
+    }
+    if (message.status !== "") {
+      writer.uint32(42).string(message.status);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): CreateBookingRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCreateBookingRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.event = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.artist = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.client = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.bookingDate = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.status = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CreateBookingRequest {
+    return {
+      event: isSet(object.event) ? globalThis.String(object.event) : "",
+      artist: isSet(object.artist) ? globalThis.String(object.artist) : "",
+      client: isSet(object.client) ? globalThis.String(object.client) : "",
+      bookingDate: isSet(object.bookingDate) ? globalThis.String(object.bookingDate) : "",
+      status: isSet(object.status) ? globalThis.String(object.status) : "",
+    };
+  },
+
+  toJSON(message: CreateBookingRequest): unknown {
+    const obj: any = {};
+    if (message.event !== "") {
+      obj.event = message.event;
+    }
+    if (message.artist !== "") {
+      obj.artist = message.artist;
+    }
+    if (message.client !== "") {
+      obj.client = message.client;
+    }
+    if (message.bookingDate !== "") {
+      obj.bookingDate = message.bookingDate;
+    }
+    if (message.status !== "") {
+      obj.status = message.status;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CreateBookingRequest>, I>>(base?: I): CreateBookingRequest {
+    return CreateBookingRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CreateBookingRequest>, I>>(object: I): CreateBookingRequest {
+    const message = createBaseCreateBookingRequest();
+    message.event = object.event ?? "";
+    message.artist = object.artist ?? "";
+    message.client = object.client ?? "";
+    message.bookingDate = object.bookingDate ?? "";
+    message.status = object.status ?? "";
+    return message;
+  },
+};
+
+function createBaseGetBookingByIdRequest(): GetBookingByIdRequest {
+  return { id: "" };
+}
+
+export const GetBookingByIdRequest: MessageFns<GetBookingByIdRequest> = {
+  encode(message: GetBookingByIdRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetBookingByIdRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetBookingByIdRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetBookingByIdRequest {
+    return { id: isSet(object.id) ? globalThis.String(object.id) : "" };
+  },
+
+  toJSON(message: GetBookingByIdRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetBookingByIdRequest>, I>>(base?: I): GetBookingByIdRequest {
+    return GetBookingByIdRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetBookingByIdRequest>, I>>(object: I): GetBookingByIdRequest {
+    const message = createBaseGetBookingByIdRequest();
+    message.id = object.id ?? "";
+    return message;
+  },
+};
+
+function createBaseUpdateBookingRequest(): UpdateBookingRequest {
+  return { id: "", event: "", artist: "", client: "", bookingDate: "", status: "" };
+}
+
+export const UpdateBookingRequest: MessageFns<UpdateBookingRequest> = {
+  encode(message: UpdateBookingRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.event !== "") {
+      writer.uint32(18).string(message.event);
+    }
+    if (message.artist !== "") {
+      writer.uint32(26).string(message.artist);
+    }
+    if (message.client !== "") {
+      writer.uint32(34).string(message.client);
+    }
+    if (message.bookingDate !== "") {
+      writer.uint32(42).string(message.bookingDate);
+    }
+    if (message.status !== "") {
+      writer.uint32(50).string(message.status);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UpdateBookingRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateBookingRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.event = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.artist = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.client = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.bookingDate = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.status = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdateBookingRequest {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      event: isSet(object.event) ? globalThis.String(object.event) : "",
+      artist: isSet(object.artist) ? globalThis.String(object.artist) : "",
+      client: isSet(object.client) ? globalThis.String(object.client) : "",
+      bookingDate: isSet(object.bookingDate) ? globalThis.String(object.bookingDate) : "",
+      status: isSet(object.status) ? globalThis.String(object.status) : "",
+    };
+  },
+
+  toJSON(message: UpdateBookingRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    if (message.event !== "") {
+      obj.event = message.event;
+    }
+    if (message.artist !== "") {
+      obj.artist = message.artist;
+    }
+    if (message.client !== "") {
+      obj.client = message.client;
+    }
+    if (message.bookingDate !== "") {
+      obj.bookingDate = message.bookingDate;
+    }
+    if (message.status !== "") {
+      obj.status = message.status;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateBookingRequest>, I>>(base?: I): UpdateBookingRequest {
+    return UpdateBookingRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UpdateBookingRequest>, I>>(object: I): UpdateBookingRequest {
+    const message = createBaseUpdateBookingRequest();
+    message.id = object.id ?? "";
+    message.event = object.event ?? "";
+    message.artist = object.artist ?? "";
+    message.client = object.client ?? "";
+    message.bookingDate = object.bookingDate ?? "";
+    message.status = object.status ?? "";
+    return message;
+  },
+};
+
+function createBaseDeleteBookingRequest(): DeleteBookingRequest {
+  return { id: "" };
+}
+
+export const DeleteBookingRequest: MessageFns<DeleteBookingRequest> = {
+  encode(message: DeleteBookingRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DeleteBookingRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDeleteBookingRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DeleteBookingRequest {
+    return { id: isSet(object.id) ? globalThis.String(object.id) : "" };
+  },
+
+  toJSON(message: DeleteBookingRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DeleteBookingRequest>, I>>(base?: I): DeleteBookingRequest {
+    return DeleteBookingRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DeleteBookingRequest>, I>>(object: I): DeleteBookingRequest {
+    const message = createBaseDeleteBookingRequest();
+    message.id = object.id ?? "";
+    return message;
+  },
+};
+
+function createBaseBookingResponse(): BookingResponse {
+  return { id: "", event: "", artist: "", client: "", bookingDate: "", status: "", createdAt: "", updatedAt: "" };
+}
+
+export const BookingResponse: MessageFns<BookingResponse> = {
+  encode(message: BookingResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.event !== "") {
+      writer.uint32(18).string(message.event);
+    }
+    if (message.artist !== "") {
+      writer.uint32(26).string(message.artist);
+    }
+    if (message.client !== "") {
+      writer.uint32(34).string(message.client);
+    }
+    if (message.bookingDate !== "") {
+      writer.uint32(42).string(message.bookingDate);
+    }
+    if (message.status !== "") {
+      writer.uint32(50).string(message.status);
+    }
+    if (message.createdAt !== "") {
+      writer.uint32(58).string(message.createdAt);
+    }
+    if (message.updatedAt !== "") {
+      writer.uint32(66).string(message.updatedAt);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): BookingResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBookingResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.event = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.artist = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.client = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.bookingDate = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.status = reader.string();
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.createdAt = reader.string();
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.updatedAt = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): BookingResponse {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      event: isSet(object.event) ? globalThis.String(object.event) : "",
+      artist: isSet(object.artist) ? globalThis.String(object.artist) : "",
+      client: isSet(object.client) ? globalThis.String(object.client) : "",
+      bookingDate: isSet(object.bookingDate) ? globalThis.String(object.bookingDate) : "",
+      status: isSet(object.status) ? globalThis.String(object.status) : "",
+      createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
+      updatedAt: isSet(object.updatedAt) ? globalThis.String(object.updatedAt) : "",
+    };
+  },
+
+  toJSON(message: BookingResponse): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    if (message.event !== "") {
+      obj.event = message.event;
+    }
+    if (message.artist !== "") {
+      obj.artist = message.artist;
+    }
+    if (message.client !== "") {
+      obj.client = message.client;
+    }
+    if (message.bookingDate !== "") {
+      obj.bookingDate = message.bookingDate;
+    }
+    if (message.status !== "") {
+      obj.status = message.status;
+    }
+    if (message.createdAt !== "") {
+      obj.createdAt = message.createdAt;
+    }
+    if (message.updatedAt !== "") {
+      obj.updatedAt = message.updatedAt;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<BookingResponse>, I>>(base?: I): BookingResponse {
+    return BookingResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<BookingResponse>, I>>(object: I): BookingResponse {
+    const message = createBaseBookingResponse();
+    message.id = object.id ?? "";
+    message.event = object.event ?? "";
+    message.artist = object.artist ?? "";
+    message.client = object.client ?? "";
+    message.bookingDate = object.bookingDate ?? "";
+    message.status = object.status ?? "";
+    message.createdAt = object.createdAt ?? "";
+    message.updatedAt = object.updatedAt ?? "";
+    return message;
+  },
+};
+
+function createBaseBookingListResponse(): BookingListResponse {
+  return { bookings: [] };
+}
+
+export const BookingListResponse: MessageFns<BookingListResponse> = {
+  encode(message: BookingListResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.bookings) {
+      BookingResponse.encode(v!, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): BookingListResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBookingListResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.bookings.push(BookingResponse.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): BookingListResponse {
+    return {
+      bookings: globalThis.Array.isArray(object?.bookings)
+        ? object.bookings.map((e: any) => BookingResponse.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: BookingListResponse): unknown {
+    const obj: any = {};
+    if (message.bookings?.length) {
+      obj.bookings = message.bookings.map((e) => BookingResponse.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<BookingListResponse>, I>>(base?: I): BookingListResponse {
+    return BookingListResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<BookingListResponse>, I>>(object: I): BookingListResponse {
+    const message = createBaseBookingListResponse();
+    message.bookings = object.bookings?.map((e) => BookingResponse.fromPartial(e)) || [];
     return message;
   },
 };
@@ -913,6 +3018,165 @@ export class ArtistServiceClientImpl implements ArtistService {
   }
 }
 
+/** ------------------- CLUBS SERVICE */
+export interface ClubService {
+  CreateClub(request: CreateClubRequest): Promise<ClubResponse>;
+  GetClubById(request: GetClubByIdRequest): Promise<ClubResponse>;
+  UpdateClub(request: UpdateClubRequest): Promise<ClubResponse>;
+  DeleteClub(request: DeleteClubRequest): Promise<ClubResponse>;
+  GetAllClubs(request: Empty): Promise<ClubListResponse>;
+}
+
+export const ClubServiceServiceName = "eventsms.ClubService";
+export class ClubServiceClientImpl implements ClubService {
+  private readonly rpc: Rpc;
+  private readonly service: string;
+  constructor(rpc: Rpc, opts?: { service?: string }) {
+    this.service = opts?.service || ClubServiceServiceName;
+    this.rpc = rpc;
+    this.CreateClub = this.CreateClub.bind(this);
+    this.GetClubById = this.GetClubById.bind(this);
+    this.UpdateClub = this.UpdateClub.bind(this);
+    this.DeleteClub = this.DeleteClub.bind(this);
+    this.GetAllClubs = this.GetAllClubs.bind(this);
+  }
+  CreateClub(request: CreateClubRequest): Promise<ClubResponse> {
+    const data = CreateClubRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "CreateClub", data);
+    return promise.then((data) => ClubResponse.decode(new BinaryReader(data)));
+  }
+
+  GetClubById(request: GetClubByIdRequest): Promise<ClubResponse> {
+    const data = GetClubByIdRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "GetClubById", data);
+    return promise.then((data) => ClubResponse.decode(new BinaryReader(data)));
+  }
+
+  UpdateClub(request: UpdateClubRequest): Promise<ClubResponse> {
+    const data = UpdateClubRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "UpdateClub", data);
+    return promise.then((data) => ClubResponse.decode(new BinaryReader(data)));
+  }
+
+  DeleteClub(request: DeleteClubRequest): Promise<ClubResponse> {
+    const data = DeleteClubRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "DeleteClub", data);
+    return promise.then((data) => ClubResponse.decode(new BinaryReader(data)));
+  }
+
+  GetAllClubs(request: Empty): Promise<ClubListResponse> {
+    const data = Empty.encode(request).finish();
+    const promise = this.rpc.request(this.service, "GetAllClubs", data);
+    return promise.then((data) => ClubListResponse.decode(new BinaryReader(data)));
+  }
+}
+
+/** ------------------- EVENT SERVICE */
+export interface EventService {
+  CreateEvent(request: CreateEventRequest): Promise<EventResponse>;
+  GetEventById(request: GetEventByIdRequest): Promise<EventResponse>;
+  UpdateEvent(request: UpdateEventRequest): Promise<EventResponse>;
+  DeleteEvent(request: DeleteEventRequest): Promise<EventResponse>;
+  GetAllEvents(request: Empty): Promise<EventListResponse>;
+}
+
+export const EventServiceServiceName = "eventsms.EventService";
+export class EventServiceClientImpl implements EventService {
+  private readonly rpc: Rpc;
+  private readonly service: string;
+  constructor(rpc: Rpc, opts?: { service?: string }) {
+    this.service = opts?.service || EventServiceServiceName;
+    this.rpc = rpc;
+    this.CreateEvent = this.CreateEvent.bind(this);
+    this.GetEventById = this.GetEventById.bind(this);
+    this.UpdateEvent = this.UpdateEvent.bind(this);
+    this.DeleteEvent = this.DeleteEvent.bind(this);
+    this.GetAllEvents = this.GetAllEvents.bind(this);
+  }
+  CreateEvent(request: CreateEventRequest): Promise<EventResponse> {
+    const data = CreateEventRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "CreateEvent", data);
+    return promise.then((data) => EventResponse.decode(new BinaryReader(data)));
+  }
+
+  GetEventById(request: GetEventByIdRequest): Promise<EventResponse> {
+    const data = GetEventByIdRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "GetEventById", data);
+    return promise.then((data) => EventResponse.decode(new BinaryReader(data)));
+  }
+
+  UpdateEvent(request: UpdateEventRequest): Promise<EventResponse> {
+    const data = UpdateEventRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "UpdateEvent", data);
+    return promise.then((data) => EventResponse.decode(new BinaryReader(data)));
+  }
+
+  DeleteEvent(request: DeleteEventRequest): Promise<EventResponse> {
+    const data = DeleteEventRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "DeleteEvent", data);
+    return promise.then((data) => EventResponse.decode(new BinaryReader(data)));
+  }
+
+  GetAllEvents(request: Empty): Promise<EventListResponse> {
+    const data = Empty.encode(request).finish();
+    const promise = this.rpc.request(this.service, "GetAllEvents", data);
+    return promise.then((data) => EventListResponse.decode(new BinaryReader(data)));
+  }
+}
+
+/** ------------------- BOOKING SERVICE */
+export interface BookingService {
+  CreateBooking(request: CreateBookingRequest): Promise<BookingResponse>;
+  GetBookingById(request: GetBookingByIdRequest): Promise<BookingResponse>;
+  UpdateBooking(request: UpdateBookingRequest): Promise<BookingResponse>;
+  DeleteBooking(request: DeleteBookingRequest): Promise<BookingResponse>;
+  GetAllBookings(request: Empty): Promise<BookingListResponse>;
+}
+
+export const BookingServiceServiceName = "eventsms.BookingService";
+export class BookingServiceClientImpl implements BookingService {
+  private readonly rpc: Rpc;
+  private readonly service: string;
+  constructor(rpc: Rpc, opts?: { service?: string }) {
+    this.service = opts?.service || BookingServiceServiceName;
+    this.rpc = rpc;
+    this.CreateBooking = this.CreateBooking.bind(this);
+    this.GetBookingById = this.GetBookingById.bind(this);
+    this.UpdateBooking = this.UpdateBooking.bind(this);
+    this.DeleteBooking = this.DeleteBooking.bind(this);
+    this.GetAllBookings = this.GetAllBookings.bind(this);
+  }
+  CreateBooking(request: CreateBookingRequest): Promise<BookingResponse> {
+    const data = CreateBookingRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "CreateBooking", data);
+    return promise.then((data) => BookingResponse.decode(new BinaryReader(data)));
+  }
+
+  GetBookingById(request: GetBookingByIdRequest): Promise<BookingResponse> {
+    const data = GetBookingByIdRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "GetBookingById", data);
+    return promise.then((data) => BookingResponse.decode(new BinaryReader(data)));
+  }
+
+  UpdateBooking(request: UpdateBookingRequest): Promise<BookingResponse> {
+    const data = UpdateBookingRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "UpdateBooking", data);
+    return promise.then((data) => BookingResponse.decode(new BinaryReader(data)));
+  }
+
+  DeleteBooking(request: DeleteBookingRequest): Promise<BookingResponse> {
+    const data = DeleteBookingRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "DeleteBooking", data);
+    return promise.then((data) => BookingResponse.decode(new BinaryReader(data)));
+  }
+
+  GetAllBookings(request: Empty): Promise<BookingListResponse> {
+    const data = Empty.encode(request).finish();
+    const promise = this.rpc.request(this.service, "GetAllBookings", data);
+    return promise.then((data) => BookingListResponse.decode(new BinaryReader(data)));
+  }
+}
+
 interface Rpc {
   request(service: string, method: string, data: Uint8Array): Promise<Uint8Array>;
 }
@@ -928,6 +3192,28 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function toTimestamp(date: Date): Timestamp {
+  const seconds = Math.trunc(date.getTime() / 1_000);
+  const nanos = (date.getTime() % 1_000) * 1_000_000;
+  return { seconds, nanos };
+}
+
+function fromTimestamp(t: Timestamp): Date {
+  let millis = (t.seconds || 0) * 1_000;
+  millis += (t.nanos || 0) / 1_000_000;
+  return new globalThis.Date(millis);
+}
+
+function fromJsonTimestamp(o: any): Date {
+  if (o instanceof globalThis.Date) {
+    return o;
+  } else if (typeof o === "string") {
+    return new globalThis.Date(o);
+  } else {
+    return fromTimestamp(Timestamp.fromJSON(o));
+  }
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

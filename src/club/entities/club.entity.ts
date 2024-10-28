@@ -6,7 +6,7 @@ import * as mongoose from 'mongoose';
 export type ClubDocument = Club & Document;
 
 @Schema()
-export class Club {
+export class Club extends Document{
   @Prop({ unique: true, required: true })
   name: string;
 
@@ -24,6 +24,12 @@ export class Club {
 
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }] })
   events: Event[];
+
+  @Prop({ type: Date, default: Date.now })
+  createdAt: Date;
+
+  @Prop({ type: Date, default: Date.now, index: true })
+  updatedAt: Date;
 }
 
 export const ClubSchema = SchemaFactory.createForClass(Club);

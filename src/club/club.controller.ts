@@ -1,45 +1,36 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { ClubService } from './club.service';
-import { CreateClubDto } from './dto/create-club.dto';
-import { UpdateClubDto } from './dto/update-club.dto';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { GrpcMethod, MessagePattern, Payload } from '@nestjs/microservices';
+import { ClubResponse, CreateClubRequest, DeleteClubRequest, GetClubByIdRequest, UpdateClubRequest } from 'src/proto/events-app';
 
 @Controller('club')
+@Controller()
 export class ClubController {
   constructor(private readonly clubService: ClubService) {}
 
-  @Post()
-  create(@Body() createClubDto: CreateClubDto) {
-    return this.clubService.create(createClubDto);
+  @GrpcMethod('ClubService', 'CreateClub')
+  async createClub(data: CreateClubRequest) {
+    return this.clubService.create(data);
   }
 
-  @Get()
-  findAll() {
-    return this.clubService.findAll();
+  @GrpcMethod('ClubService', 'GetAllClubs')
+  async getAllClubs() {
+    const clubs = await this.clubService.findAll();
+    return {clubs}
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.clubService.findOne(+id);
+  @GrpcMethod('ClubService', 'GetClubById')
+  async getClubById(data: GetClubByIdRequest): Promise<ClubResponse> {
+    return this.clubService.findOne(data.id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateClubDto: UpdateClubDto) {
-    return this.clubService.update(+id, updateClubDto);
+  @GrpcMethod('ClubService', 'UpdateClub')
+  async updateClub(data: UpdateClubRequest) {
+    return this.clubService.update(data.id, data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.clubService.remove(+id);
-  }
-
-  @MessagePattern({ cmd: 'POST/EVENTS_API/CLUB/CREATE' })
-  createClub(@Payload() createClubDto: CreateClubDto) {
-    return this.clubService.create(createClubDto);
-  }
-
-  @MessagePattern({ cmd: 'GET/EVENTS_API/CLUB/ALL'})
-  getClubAll(data: any) {
-    return this.clubService.findAll();
+  @GrpcMethod('ClubService', 'DeleteClub')
+  async deleteClub(data: DeleteClubRequest) {
+    return this.clubService.remove(data.id);
   }
 }

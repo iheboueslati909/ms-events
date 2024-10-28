@@ -3,48 +3,41 @@ import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { GrpcMethod, MessagePattern, Payload } from '@nestjs/microservices';
-
+import { CreateBookingRequest, CreateEventRequest, DeleteEventRequest, GetEventByIdRequest, UpdateEventRequest } from 'src/proto/events-app';
 @Controller('event')
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 
-  @Post()
-  create(@Body() createEventDto: CreateEventDto) {
-    return this.eventService.create(createEventDto);
+  @GrpcMethod('EventService', 'CreateEvent')
+  createEvent(data: CreateEventRequest) {
+    return this.eventService.createEvent(data);
   }
 
-  @Get()
-  findAll() {
-    return this.eventService.findAll();
+  @GrpcMethod('EventService', 'GetEventById')
+  getEventById(data: GetEventByIdRequest) {
+    return this.eventService.findOneEvent(data.id);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.eventService.findOne(+id);
+  @GrpcMethod('EventService', 'UpdateEvent')
+  updateEvent(data: UpdateEventRequest) {
+    return this.eventService.updateEvent(data.id, data);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
-    return this.eventService.update(+id, updateEventDto);
+  @GrpcMethod('EventService', 'DeleteEvent')
+  deleteEvent(data: DeleteEventRequest) {
+    return this.eventService.removeEvent(data.id);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.eventService.remove(+id);
+  @GrpcMethod('EventService', 'GetAllEvents')
+  async getAllEvents() {
+    const events = await this.eventService.findAllEvents();
+    return {events};
   }
 
-  @MessagePattern({ cmd: 'POST/EVENTS_API/EVENT/CREATE' })
-  createEvent(@Payload() createEventDto: CreateEventDto) {
-    return this.eventService.create(createEventDto);
-  }
-
-  @MessagePattern({ cmd: 'GET/EVENTS_API/EVENT/ALL'})
-  getEventAll(data: any) {
-    return this.eventService.findAll();
-  }
-
-  @GrpcMethod('HelloService', 'SayHello')
-  sayHello(data: any): { message: string } {
-    return { message: 'Hello, World!' };
+  @GrpcMethod('BookingService', 'CreateBooking')
+  createBooking(data: CreateBookingRequest) {
+    return this.eventService.createBooking(data);
   }
 }
+
+

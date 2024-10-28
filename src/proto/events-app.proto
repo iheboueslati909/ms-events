@@ -1,6 +1,8 @@
 syntax = "proto3";
-package eventsms;  // Renamed from 'hero' to 'eventsms'
+package eventsms;
+
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 //------------------- MAIN APP SERVICE
 service HealthCheck {
@@ -57,11 +59,164 @@ message ArtistResponse {
   bool availability = 5;
   repeated string socialLinks = 6;
   string user = 7;
-  string createdAt = 8;
-  string updatedAt = 9;
+  google.protobuf.Timestamp createdAt = 8;
+  google.protobuf.Timestamp updatedAt = 9;
 }
 
 message ArtistListResponse {
   repeated ArtistResponse artists = 1;
 }
 
+//------------------- CLUBS SERVICE
+service ClubService {
+  rpc CreateClub(CreateClubRequest) returns (ClubResponse);
+  rpc GetClubById(GetClubByIdRequest) returns (ClubResponse);
+  rpc UpdateClub(UpdateClubRequest) returns (ClubResponse);
+  rpc DeleteClub(DeleteClubRequest) returns (ClubResponse);
+  rpc GetAllClubs(google.protobuf.Empty) returns (ClubListResponse);
+}
+
+message CreateClubRequest {
+  string name = 1;
+  string location = 2;
+  int32 capacity = 3;
+  string description = 4;
+  string googleMapsLink = 5;
+}
+
+message GetClubByIdRequest {
+  string id = 1;
+}
+
+message UpdateClubRequest {
+  string id = 1;
+  string name = 2;
+  string location = 3;
+  int32 capacity = 4;
+  string description = 5;
+  string googleMapsLink = 6;
+}
+
+message DeleteClubRequest {
+  string id = 1;
+}
+
+message ClubResponse {
+  string id = 1;
+  string name = 2;
+  string location = 3;
+  int32 capacity = 4;
+  string description = 5;
+  string googleMapsLink = 6;
+  repeated string events = 7; // IDs of associated events
+  google.protobuf.Timestamp createdAt = 8;
+  google.protobuf.Timestamp updatedAt = 9;
+}
+
+message ClubListResponse {
+  repeated ClubResponse clubs = 1;
+}
+
+//------------------- EVENT SERVICE
+service EventService {
+  rpc CreateEvent(CreateEventRequest) returns (EventResponse);
+  rpc GetEventById(GetEventByIdRequest) returns (EventResponse);
+  rpc UpdateEvent(UpdateEventRequest) returns (EventResponse);
+  rpc DeleteEvent(DeleteEventRequest) returns (EventResponse);
+  rpc GetAllEvents(google.protobuf.Empty) returns (EventListResponse);
+}
+
+message CreateEventRequest {
+  string name = 1;
+  string location = 2;
+  string dateStart = 3;
+  string dateEnd = 4;
+  string artist = 5; // Artist ID
+  string organizer = 6; // Organizer ID
+  double ticketPrice = 7;
+}
+
+message GetEventByIdRequest {
+  string id = 1;
+}
+
+message UpdateEventRequest {
+  string id = 1;
+  string name = 2;
+  string location = 3;
+  string dateStart = 4;
+  string dateEnd = 5;
+  string artist = 6;
+  string organizer = 7;
+  double ticketPrice = 8;
+}
+
+message DeleteEventRequest {
+  string id = 1;
+}
+
+message EventResponse {
+  string id = 1;
+  string name = 2;
+  string location = 3;
+  string dateStart = 4;
+  string dateEnd = 5;
+  string artist = 6;
+  string organizer = 7;
+  double ticketPrice = 8;
+  string createdAt = 9;
+  string updatedAt = 10;
+}
+
+message EventListResponse {
+  repeated EventResponse events = 1;
+}
+
+//------------------- BOOKING SERVICE
+service BookingService {
+  rpc CreateBooking(CreateBookingRequest) returns (BookingResponse);
+  rpc GetBookingById(GetBookingByIdRequest) returns (BookingResponse);
+  rpc UpdateBooking(UpdateBookingRequest) returns (BookingResponse);
+  rpc DeleteBooking(DeleteBookingRequest) returns (BookingResponse);
+  rpc GetAllBookings(google.protobuf.Empty) returns (BookingListResponse);
+}
+
+message CreateBookingRequest {
+  string event = 1; // Event ID
+  string artist = 2; // Artist ID
+  string client = 3; // Client ID
+  string bookingDate = 4;
+  string status = 5;
+}
+
+message GetBookingByIdRequest {
+  string id = 1;
+}
+
+message UpdateBookingRequest {
+  string id = 1;
+  string event = 2;
+  string artist = 3;
+  string client = 4;
+  string bookingDate = 5;
+  string status = 6;
+}
+
+message DeleteBookingRequest {
+  string id = 1;
+}
+
+message BookingResponse {
+  string id = 1;
+  string event = 2;
+  string artist = 3;
+  string client = 4;
+  string bookingDate = 5;
+  string status = 6;
+  string createdAt = 7;
+  string updatedAt = 8;
+}
+
+message BookingListResponse {
+  repeated BookingResponse bookings = 1;
+}

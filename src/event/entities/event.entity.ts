@@ -25,6 +25,12 @@ export class Event extends Document {
 
   @Prop({ default: 0 })
   ticketPrice: number;
+
+  @Prop({ type: Date, default: Date.now })
+  createdAt: Date;
+
+  @Prop({ type: Date, default: Date.now, index: true })
+  updatedAt: Date;
 }
 
 export const EventSchema = SchemaFactory.createForClass(Event);

@@ -21,6 +21,12 @@ export class Booking extends Document {
 
   @Prop({ default: EventStatus.PENDING, enum: EventStatus, required: true })
   status: string;
+
+  @Prop({ type: Date, default: Date.now })
+  createdAt: Date;
+
+  @Prop({ type: Date, default: Date.now, index: true })
+  updatedAt: Date;
 }
 
 export const BookingSchema = SchemaFactory.createForClass(Booking);

@@ -4,7 +4,7 @@ import { Document } from 'mongoose';
 export type OrganizerDocument = Organizer & Document;
 
 @Schema()
-export class Organizer {
+export class Organizer extends Document{
   @Prop({ unique: true, required: true })
   name: string;
 
