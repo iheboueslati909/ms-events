@@ -131,9 +131,11 @@ message CreateEventRequest {
   string location = 2;
   string dateStart = 3;
   string dateEnd = 4;
-  string artist = 5; // Artist ID
-  string organizer = 6; // Organizer ID
+  repeated string artist = 5; 
+  string organizer = 6;
   double ticketPrice = 7;
+  string club = 8;
+
 }
 
 message GetEventByIdRequest {
@@ -146,9 +148,11 @@ message UpdateEventRequest {
   string location = 3;
   string dateStart = 4;
   string dateEnd = 5;
-  string artist = 6;
+  repeated string artist = 6;
   string organizer = 7;
   double ticketPrice = 8;
+  string club = 9;
+
 }
 
 message DeleteEventRequest {
@@ -161,11 +165,13 @@ message EventResponse {
   string location = 3;
   string dateStart = 4;
   string dateEnd = 5;
-  string artist = 6;
+  repeated string artist = 6;
   string organizer = 7;
   double ticketPrice = 8;
   string createdAt = 9;
   string updatedAt = 10;
+  string club = 11;
+
 }
 
 message EventListResponse {
@@ -219,4 +225,47 @@ message BookingResponse {
 
 message BookingListResponse {
   repeated BookingResponse bookings = 1;
+}
+
+//------------------- ORGANIZER SERVICE
+service OrganizerService {
+  rpc CreateOrganizer(CreateOrganizerRequest) returns (OrganizerResponse);
+  rpc GetOrganizerById(GetOrganizerByIdRequest) returns (OrganizerResponse);
+  rpc UpdateOrganizer(UpdateOrganizerRequest) returns (OrganizerResponse);
+  rpc DeleteOrganizer(DeleteOrganizerRequest) returns (google.protobuf.Empty);
+  rpc GetAllOrganizers(google.protobuf.Empty) returns (OrganizerListResponse);
+}
+
+message CreateOrganizerRequest {
+  string userId = 1;            // Unique identifier of the user
+  string contactEmail = 2;       // Organizer-specific email contact
+  string contactPhone = 3;       // Organizer-specific phone contact
+  string description = 4;        // Optional description for the organizer
+}
+
+message GetOrganizerByIdRequest {
+  string id = 1;
+}
+
+message UpdateOrganizerRequest {
+  string id = 1;
+  string contactEmail = 2;
+  string contactPhone = 3;
+  string description = 4;
+}
+
+message DeleteOrganizerRequest {
+  string id = 1;
+}
+
+message OrganizerResponse {
+  string id = 1;
+  string userId = 2;
+  string contactEmail = 3;
+  string contactPhone = 4;
+  string description = 5;
+}
+
+message OrganizerListResponse {
+  repeated OrganizerResponse organizers = 1;
 }

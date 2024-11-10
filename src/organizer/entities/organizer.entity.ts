@@ -6,7 +6,7 @@ export type OrganizerDocument = Organizer & Document;
 @Schema()
 export class Organizer extends Document{
   @Prop({ unique: true, required: true })
-  name: string;
+  userId: string;
 
   @Prop({ required: true })
   contactEmail: string;

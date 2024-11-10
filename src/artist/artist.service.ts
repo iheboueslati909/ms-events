@@ -51,6 +51,11 @@ export class ArtistService {
     return artists.map(artist => this.toArtistResponse(artist));
   }
 
+  async findMany(ids: string[]): Promise<ArtistResponse[]> {
+    const artists = await this.artistModel.find({ _id: { $in: ids } });
+    return artists.map(artist => this.toArtistResponse(artist));
+  }
+
   // Helper method to map Mongoose document to ArtistResponse
   private toArtistResponse(artist: Artist): ArtistResponse {
     return {

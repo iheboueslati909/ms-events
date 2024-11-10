@@ -5,11 +5,12 @@ import { CommonModule } from 'src/common/common.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Artist , ArtistSchema } from './entities/artist.entity';
 @Module({
-  imports: [CommonModule,
+  imports: [
     MongooseModule.forFeature([{
       name: Artist.name, schema:
       ArtistSchema
-    }])
+    }]),
+    CommonModule,
   ],
   controllers: [ArtistController],
   providers: [ArtistService],

@@ -108,11 +108,10 @@ export interface CreateEventRequest {
   location: string;
   dateStart: string;
   dateEnd: string;
-  /** Artist ID */
-  artist: string;
-  /** Organizer ID */
+  artist: string[];
   organizer: string;
   ticketPrice: number;
+  club: string;
 }
 
 export interface GetEventByIdRequest {
@@ -125,9 +124,10 @@ export interface UpdateEventRequest {
   location: string;
   dateStart: string;
   dateEnd: string;
-  artist: string;
+  artist: string[];
   organizer: string;
   ticketPrice: number;
+  club: string;
 }
 
 export interface DeleteEventRequest {
@@ -140,11 +140,12 @@ export interface EventResponse {
   location: string;
   dateStart: string;
   dateEnd: string;
-  artist: string;
+  artist: string[];
   organizer: string;
   ticketPrice: number;
   createdAt: string;
   updatedAt: string;
+  club: string;
 }
 
 export interface EventListResponse {
@@ -192,6 +193,44 @@ export interface BookingResponse {
 
 export interface BookingListResponse {
   bookings: BookingResponse[];
+}
+
+export interface CreateOrganizerRequest {
+  /** Unique identifier of the user */
+  userId: string;
+  /** Organizer-specific email contact */
+  contactEmail: string;
+  /** Organizer-specific phone contact */
+  contactPhone: string;
+  /** Optional description for the organizer */
+  description: string;
+}
+
+export interface GetOrganizerByIdRequest {
+  id: string;
+}
+
+export interface UpdateOrganizerRequest {
+  id: string;
+  contactEmail: string;
+  contactPhone: string;
+  description: string;
+}
+
+export interface DeleteOrganizerRequest {
+  id: string;
+}
+
+export interface OrganizerResponse {
+  id: string;
+  userId: string;
+  contactEmail: string;
+  contactPhone: string;
+  description: string;
+}
+
+export interface OrganizerListResponse {
+  organizers: OrganizerResponse[];
 }
 
 function createBaseHealthCheckRequest(): HealthCheckRequest {
@@ -1612,7 +1651,7 @@ export const ClubListResponse: MessageFns<ClubListResponse> = {
 };
 
 function createBaseCreateEventRequest(): CreateEventRequest {
-  return { name: "", location: "", dateStart: "", dateEnd: "", artist: "", organizer: "", ticketPrice: 0 };
+  return { name: "", location: "", dateStart: "", dateEnd: "", artist: [], organizer: "", ticketPrice: 0, club: "" };
 }
 
 export const CreateEventRequest: MessageFns<CreateEventRequest> = {
@@ -1629,14 +1668,17 @@ export const CreateEventRequest: MessageFns<CreateEventRequest> = {
     if (message.dateEnd !== "") {
       writer.uint32(34).string(message.dateEnd);
     }
-    if (message.artist !== "") {
-      writer.uint32(42).string(message.artist);
+    for (const v of message.artist) {
+      writer.uint32(42).string(v!);
     }
     if (message.organizer !== "") {
       writer.uint32(50).string(message.organizer);
     }
     if (message.ticketPrice !== 0) {
       writer.uint32(57).double(message.ticketPrice);
+    }
+    if (message.club !== "") {
+      writer.uint32(66).string(message.club);
     }
     return writer;
   },
@@ -1685,7 +1727,7 @@ export const CreateEventRequest: MessageFns<CreateEventRequest> = {
             break;
           }
 
-          message.artist = reader.string();
+          message.artist.push(reader.string());
           continue;
         }
         case 6: {
@@ -1704,6 +1746,14 @@ export const CreateEventRequest: MessageFns<CreateEventRequest> = {
           message.ticketPrice = reader.double();
           continue;
         }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.club = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1719,9 +1769,10 @@ export const CreateEventRequest: MessageFns<CreateEventRequest> = {
       location: isSet(object.location) ? globalThis.String(object.location) : "",
       dateStart: isSet(object.dateStart) ? globalThis.String(object.dateStart) : "",
       dateEnd: isSet(object.dateEnd) ? globalThis.String(object.dateEnd) : "",
-      artist: isSet(object.artist) ? globalThis.String(object.artist) : "",
+      artist: globalThis.Array.isArray(object?.artist) ? object.artist.map((e: any) => globalThis.String(e)) : [],
       organizer: isSet(object.organizer) ? globalThis.String(object.organizer) : "",
       ticketPrice: isSet(object.ticketPrice) ? globalThis.Number(object.ticketPrice) : 0,
+      club: isSet(object.club) ? globalThis.String(object.club) : "",
     };
   },
 
@@ -1739,7 +1790,7 @@ export const CreateEventRequest: MessageFns<CreateEventRequest> = {
     if (message.dateEnd !== "") {
       obj.dateEnd = message.dateEnd;
     }
-    if (message.artist !== "") {
+    if (message.artist?.length) {
       obj.artist = message.artist;
     }
     if (message.organizer !== "") {
@@ -1747,6 +1798,9 @@ export const CreateEventRequest: MessageFns<CreateEventRequest> = {
     }
     if (message.ticketPrice !== 0) {
       obj.ticketPrice = message.ticketPrice;
+    }
+    if (message.club !== "") {
+      obj.club = message.club;
     }
     return obj;
   },
@@ -1760,9 +1814,10 @@ export const CreateEventRequest: MessageFns<CreateEventRequest> = {
     message.location = object.location ?? "";
     message.dateStart = object.dateStart ?? "";
     message.dateEnd = object.dateEnd ?? "";
-    message.artist = object.artist ?? "";
+    message.artist = object.artist?.map((e) => e) || [];
     message.organizer = object.organizer ?? "";
     message.ticketPrice = object.ticketPrice ?? 0;
+    message.club = object.club ?? "";
     return message;
   },
 };
@@ -1826,7 +1881,17 @@ export const GetEventByIdRequest: MessageFns<GetEventByIdRequest> = {
 };
 
 function createBaseUpdateEventRequest(): UpdateEventRequest {
-  return { id: "", name: "", location: "", dateStart: "", dateEnd: "", artist: "", organizer: "", ticketPrice: 0 };
+  return {
+    id: "",
+    name: "",
+    location: "",
+    dateStart: "",
+    dateEnd: "",
+    artist: [],
+    organizer: "",
+    ticketPrice: 0,
+    club: "",
+  };
 }
 
 export const UpdateEventRequest: MessageFns<UpdateEventRequest> = {
@@ -1846,14 +1911,17 @@ export const UpdateEventRequest: MessageFns<UpdateEventRequest> = {
     if (message.dateEnd !== "") {
       writer.uint32(42).string(message.dateEnd);
     }
-    if (message.artist !== "") {
-      writer.uint32(50).string(message.artist);
+    for (const v of message.artist) {
+      writer.uint32(50).string(v!);
     }
     if (message.organizer !== "") {
       writer.uint32(58).string(message.organizer);
     }
     if (message.ticketPrice !== 0) {
       writer.uint32(65).double(message.ticketPrice);
+    }
+    if (message.club !== "") {
+      writer.uint32(74).string(message.club);
     }
     return writer;
   },
@@ -1910,7 +1978,7 @@ export const UpdateEventRequest: MessageFns<UpdateEventRequest> = {
             break;
           }
 
-          message.artist = reader.string();
+          message.artist.push(reader.string());
           continue;
         }
         case 7: {
@@ -1929,6 +1997,14 @@ export const UpdateEventRequest: MessageFns<UpdateEventRequest> = {
           message.ticketPrice = reader.double();
           continue;
         }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.club = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1945,9 +2021,10 @@ export const UpdateEventRequest: MessageFns<UpdateEventRequest> = {
       location: isSet(object.location) ? globalThis.String(object.location) : "",
       dateStart: isSet(object.dateStart) ? globalThis.String(object.dateStart) : "",
       dateEnd: isSet(object.dateEnd) ? globalThis.String(object.dateEnd) : "",
-      artist: isSet(object.artist) ? globalThis.String(object.artist) : "",
+      artist: globalThis.Array.isArray(object?.artist) ? object.artist.map((e: any) => globalThis.String(e)) : [],
       organizer: isSet(object.organizer) ? globalThis.String(object.organizer) : "",
       ticketPrice: isSet(object.ticketPrice) ? globalThis.Number(object.ticketPrice) : 0,
+      club: isSet(object.club) ? globalThis.String(object.club) : "",
     };
   },
 
@@ -1968,7 +2045,7 @@ export const UpdateEventRequest: MessageFns<UpdateEventRequest> = {
     if (message.dateEnd !== "") {
       obj.dateEnd = message.dateEnd;
     }
-    if (message.artist !== "") {
+    if (message.artist?.length) {
       obj.artist = message.artist;
     }
     if (message.organizer !== "") {
@@ -1976,6 +2053,9 @@ export const UpdateEventRequest: MessageFns<UpdateEventRequest> = {
     }
     if (message.ticketPrice !== 0) {
       obj.ticketPrice = message.ticketPrice;
+    }
+    if (message.club !== "") {
+      obj.club = message.club;
     }
     return obj;
   },
@@ -1990,9 +2070,10 @@ export const UpdateEventRequest: MessageFns<UpdateEventRequest> = {
     message.location = object.location ?? "";
     message.dateStart = object.dateStart ?? "";
     message.dateEnd = object.dateEnd ?? "";
-    message.artist = object.artist ?? "";
+    message.artist = object.artist?.map((e) => e) || [];
     message.organizer = object.organizer ?? "";
     message.ticketPrice = object.ticketPrice ?? 0;
+    message.club = object.club ?? "";
     return message;
   },
 };
@@ -2062,11 +2143,12 @@ function createBaseEventResponse(): EventResponse {
     location: "",
     dateStart: "",
     dateEnd: "",
-    artist: "",
+    artist: [],
     organizer: "",
     ticketPrice: 0,
     createdAt: "",
     updatedAt: "",
+    club: "",
   };
 }
 
@@ -2087,8 +2169,8 @@ export const EventResponse: MessageFns<EventResponse> = {
     if (message.dateEnd !== "") {
       writer.uint32(42).string(message.dateEnd);
     }
-    if (message.artist !== "") {
-      writer.uint32(50).string(message.artist);
+    for (const v of message.artist) {
+      writer.uint32(50).string(v!);
     }
     if (message.organizer !== "") {
       writer.uint32(58).string(message.organizer);
@@ -2101,6 +2183,9 @@ export const EventResponse: MessageFns<EventResponse> = {
     }
     if (message.updatedAt !== "") {
       writer.uint32(82).string(message.updatedAt);
+    }
+    if (message.club !== "") {
+      writer.uint32(90).string(message.club);
     }
     return writer;
   },
@@ -2157,7 +2242,7 @@ export const EventResponse: MessageFns<EventResponse> = {
             break;
           }
 
-          message.artist = reader.string();
+          message.artist.push(reader.string());
           continue;
         }
         case 7: {
@@ -2192,6 +2277,14 @@ export const EventResponse: MessageFns<EventResponse> = {
           message.updatedAt = reader.string();
           continue;
         }
+        case 11: {
+          if (tag !== 90) {
+            break;
+          }
+
+          message.club = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2208,11 +2301,12 @@ export const EventResponse: MessageFns<EventResponse> = {
       location: isSet(object.location) ? globalThis.String(object.location) : "",
       dateStart: isSet(object.dateStart) ? globalThis.String(object.dateStart) : "",
       dateEnd: isSet(object.dateEnd) ? globalThis.String(object.dateEnd) : "",
-      artist: isSet(object.artist) ? globalThis.String(object.artist) : "",
+      artist: globalThis.Array.isArray(object?.artist) ? object.artist.map((e: any) => globalThis.String(e)) : [],
       organizer: isSet(object.organizer) ? globalThis.String(object.organizer) : "",
       ticketPrice: isSet(object.ticketPrice) ? globalThis.Number(object.ticketPrice) : 0,
       createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
       updatedAt: isSet(object.updatedAt) ? globalThis.String(object.updatedAt) : "",
+      club: isSet(object.club) ? globalThis.String(object.club) : "",
     };
   },
 
@@ -2233,7 +2327,7 @@ export const EventResponse: MessageFns<EventResponse> = {
     if (message.dateEnd !== "") {
       obj.dateEnd = message.dateEnd;
     }
-    if (message.artist !== "") {
+    if (message.artist?.length) {
       obj.artist = message.artist;
     }
     if (message.organizer !== "") {
@@ -2248,6 +2342,9 @@ export const EventResponse: MessageFns<EventResponse> = {
     if (message.updatedAt !== "") {
       obj.updatedAt = message.updatedAt;
     }
+    if (message.club !== "") {
+      obj.club = message.club;
+    }
     return obj;
   },
 
@@ -2261,11 +2358,12 @@ export const EventResponse: MessageFns<EventResponse> = {
     message.location = object.location ?? "";
     message.dateStart = object.dateStart ?? "";
     message.dateEnd = object.dateEnd ?? "";
-    message.artist = object.artist ?? "";
+    message.artist = object.artist?.map((e) => e) || [];
     message.organizer = object.organizer ?? "";
     message.ticketPrice = object.ticketPrice ?? 0;
     message.createdAt = object.createdAt ?? "";
     message.updatedAt = object.updatedAt ?? "";
+    message.club = object.club ?? "";
     return message;
   },
 };
@@ -2944,6 +3042,524 @@ export const BookingListResponse: MessageFns<BookingListResponse> = {
   },
 };
 
+function createBaseCreateOrganizerRequest(): CreateOrganizerRequest {
+  return { userId: "", contactEmail: "", contactPhone: "", description: "" };
+}
+
+export const CreateOrganizerRequest: MessageFns<CreateOrganizerRequest> = {
+  encode(message: CreateOrganizerRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.userId !== "") {
+      writer.uint32(10).string(message.userId);
+    }
+    if (message.contactEmail !== "") {
+      writer.uint32(18).string(message.contactEmail);
+    }
+    if (message.contactPhone !== "") {
+      writer.uint32(26).string(message.contactPhone);
+    }
+    if (message.description !== "") {
+      writer.uint32(34).string(message.description);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): CreateOrganizerRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCreateOrganizerRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.userId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.contactEmail = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.contactPhone = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CreateOrganizerRequest {
+    return {
+      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
+      contactEmail: isSet(object.contactEmail) ? globalThis.String(object.contactEmail) : "",
+      contactPhone: isSet(object.contactPhone) ? globalThis.String(object.contactPhone) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : "",
+    };
+  },
+
+  toJSON(message: CreateOrganizerRequest): unknown {
+    const obj: any = {};
+    if (message.userId !== "") {
+      obj.userId = message.userId;
+    }
+    if (message.contactEmail !== "") {
+      obj.contactEmail = message.contactEmail;
+    }
+    if (message.contactPhone !== "") {
+      obj.contactPhone = message.contactPhone;
+    }
+    if (message.description !== "") {
+      obj.description = message.description;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CreateOrganizerRequest>, I>>(base?: I): CreateOrganizerRequest {
+    return CreateOrganizerRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CreateOrganizerRequest>, I>>(object: I): CreateOrganizerRequest {
+    const message = createBaseCreateOrganizerRequest();
+    message.userId = object.userId ?? "";
+    message.contactEmail = object.contactEmail ?? "";
+    message.contactPhone = object.contactPhone ?? "";
+    message.description = object.description ?? "";
+    return message;
+  },
+};
+
+function createBaseGetOrganizerByIdRequest(): GetOrganizerByIdRequest {
+  return { id: "" };
+}
+
+export const GetOrganizerByIdRequest: MessageFns<GetOrganizerByIdRequest> = {
+  encode(message: GetOrganizerByIdRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetOrganizerByIdRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetOrganizerByIdRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetOrganizerByIdRequest {
+    return { id: isSet(object.id) ? globalThis.String(object.id) : "" };
+  },
+
+  toJSON(message: GetOrganizerByIdRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetOrganizerByIdRequest>, I>>(base?: I): GetOrganizerByIdRequest {
+    return GetOrganizerByIdRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetOrganizerByIdRequest>, I>>(object: I): GetOrganizerByIdRequest {
+    const message = createBaseGetOrganizerByIdRequest();
+    message.id = object.id ?? "";
+    return message;
+  },
+};
+
+function createBaseUpdateOrganizerRequest(): UpdateOrganizerRequest {
+  return { id: "", contactEmail: "", contactPhone: "", description: "" };
+}
+
+export const UpdateOrganizerRequest: MessageFns<UpdateOrganizerRequest> = {
+  encode(message: UpdateOrganizerRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.contactEmail !== "") {
+      writer.uint32(18).string(message.contactEmail);
+    }
+    if (message.contactPhone !== "") {
+      writer.uint32(26).string(message.contactPhone);
+    }
+    if (message.description !== "") {
+      writer.uint32(34).string(message.description);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UpdateOrganizerRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateOrganizerRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.contactEmail = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.contactPhone = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdateOrganizerRequest {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      contactEmail: isSet(object.contactEmail) ? globalThis.String(object.contactEmail) : "",
+      contactPhone: isSet(object.contactPhone) ? globalThis.String(object.contactPhone) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : "",
+    };
+  },
+
+  toJSON(message: UpdateOrganizerRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    if (message.contactEmail !== "") {
+      obj.contactEmail = message.contactEmail;
+    }
+    if (message.contactPhone !== "") {
+      obj.contactPhone = message.contactPhone;
+    }
+    if (message.description !== "") {
+      obj.description = message.description;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateOrganizerRequest>, I>>(base?: I): UpdateOrganizerRequest {
+    return UpdateOrganizerRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UpdateOrganizerRequest>, I>>(object: I): UpdateOrganizerRequest {
+    const message = createBaseUpdateOrganizerRequest();
+    message.id = object.id ?? "";
+    message.contactEmail = object.contactEmail ?? "";
+    message.contactPhone = object.contactPhone ?? "";
+    message.description = object.description ?? "";
+    return message;
+  },
+};
+
+function createBaseDeleteOrganizerRequest(): DeleteOrganizerRequest {
+  return { id: "" };
+}
+
+export const DeleteOrganizerRequest: MessageFns<DeleteOrganizerRequest> = {
+  encode(message: DeleteOrganizerRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DeleteOrganizerRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDeleteOrganizerRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DeleteOrganizerRequest {
+    return { id: isSet(object.id) ? globalThis.String(object.id) : "" };
+  },
+
+  toJSON(message: DeleteOrganizerRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DeleteOrganizerRequest>, I>>(base?: I): DeleteOrganizerRequest {
+    return DeleteOrganizerRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DeleteOrganizerRequest>, I>>(object: I): DeleteOrganizerRequest {
+    const message = createBaseDeleteOrganizerRequest();
+    message.id = object.id ?? "";
+    return message;
+  },
+};
+
+function createBaseOrganizerResponse(): OrganizerResponse {
+  return { id: "", userId: "", contactEmail: "", contactPhone: "", description: "" };
+}
+
+export const OrganizerResponse: MessageFns<OrganizerResponse> = {
+  encode(message: OrganizerResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.userId !== "") {
+      writer.uint32(18).string(message.userId);
+    }
+    if (message.contactEmail !== "") {
+      writer.uint32(26).string(message.contactEmail);
+    }
+    if (message.contactPhone !== "") {
+      writer.uint32(34).string(message.contactPhone);
+    }
+    if (message.description !== "") {
+      writer.uint32(42).string(message.description);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): OrganizerResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseOrganizerResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.userId = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.contactEmail = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.contactPhone = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): OrganizerResponse {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
+      contactEmail: isSet(object.contactEmail) ? globalThis.String(object.contactEmail) : "",
+      contactPhone: isSet(object.contactPhone) ? globalThis.String(object.contactPhone) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : "",
+    };
+  },
+
+  toJSON(message: OrganizerResponse): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    if (message.userId !== "") {
+      obj.userId = message.userId;
+    }
+    if (message.contactEmail !== "") {
+      obj.contactEmail = message.contactEmail;
+    }
+    if (message.contactPhone !== "") {
+      obj.contactPhone = message.contactPhone;
+    }
+    if (message.description !== "") {
+      obj.description = message.description;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<OrganizerResponse>, I>>(base?: I): OrganizerResponse {
+    return OrganizerResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<OrganizerResponse>, I>>(object: I): OrganizerResponse {
+    const message = createBaseOrganizerResponse();
+    message.id = object.id ?? "";
+    message.userId = object.userId ?? "";
+    message.contactEmail = object.contactEmail ?? "";
+    message.contactPhone = object.contactPhone ?? "";
+    message.description = object.description ?? "";
+    return message;
+  },
+};
+
+function createBaseOrganizerListResponse(): OrganizerListResponse {
+  return { organizers: [] };
+}
+
+export const OrganizerListResponse: MessageFns<OrganizerListResponse> = {
+  encode(message: OrganizerListResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.organizers) {
+      OrganizerResponse.encode(v!, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): OrganizerListResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseOrganizerListResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.organizers.push(OrganizerResponse.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): OrganizerListResponse {
+    return {
+      organizers: globalThis.Array.isArray(object?.organizers)
+        ? object.organizers.map((e: any) => OrganizerResponse.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: OrganizerListResponse): unknown {
+    const obj: any = {};
+    if (message.organizers?.length) {
+      obj.organizers = message.organizers.map((e) => OrganizerResponse.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<OrganizerListResponse>, I>>(base?: I): OrganizerListResponse {
+    return OrganizerListResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<OrganizerListResponse>, I>>(object: I): OrganizerListResponse {
+    const message = createBaseOrganizerListResponse();
+    message.organizers = object.organizers?.map((e) => OrganizerResponse.fromPartial(e)) || [];
+    return message;
+  },
+};
+
 /** ------------------- MAIN APP SERVICE */
 export interface HealthCheck {
   Check(request: HealthCheckRequest): Promise<HealthCheckResponse>;
@@ -3174,6 +3790,59 @@ export class BookingServiceClientImpl implements BookingService {
     const data = Empty.encode(request).finish();
     const promise = this.rpc.request(this.service, "GetAllBookings", data);
     return promise.then((data) => BookingListResponse.decode(new BinaryReader(data)));
+  }
+}
+
+/** ------------------- ORGANIZER SERVICE */
+export interface OrganizerService {
+  CreateOrganizer(request: CreateOrganizerRequest): Promise<OrganizerResponse>;
+  GetOrganizerById(request: GetOrganizerByIdRequest): Promise<OrganizerResponse>;
+  UpdateOrganizer(request: UpdateOrganizerRequest): Promise<OrganizerResponse>;
+  DeleteOrganizer(request: DeleteOrganizerRequest): Promise<Empty>;
+  GetAllOrganizers(request: Empty): Promise<OrganizerListResponse>;
+}
+
+export const OrganizerServiceServiceName = "eventsms.OrganizerService";
+export class OrganizerServiceClientImpl implements OrganizerService {
+  private readonly rpc: Rpc;
+  private readonly service: string;
+  constructor(rpc: Rpc, opts?: { service?: string }) {
+    this.service = opts?.service || OrganizerServiceServiceName;
+    this.rpc = rpc;
+    this.CreateOrganizer = this.CreateOrganizer.bind(this);
+    this.GetOrganizerById = this.GetOrganizerById.bind(this);
+    this.UpdateOrganizer = this.UpdateOrganizer.bind(this);
+    this.DeleteOrganizer = this.DeleteOrganizer.bind(this);
+    this.GetAllOrganizers = this.GetAllOrganizers.bind(this);
+  }
+  CreateOrganizer(request: CreateOrganizerRequest): Promise<OrganizerResponse> {
+    const data = CreateOrganizerRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "CreateOrganizer", data);
+    return promise.then((data) => OrganizerResponse.decode(new BinaryReader(data)));
+  }
+
+  GetOrganizerById(request: GetOrganizerByIdRequest): Promise<OrganizerResponse> {
+    const data = GetOrganizerByIdRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "GetOrganizerById", data);
+    return promise.then((data) => OrganizerResponse.decode(new BinaryReader(data)));
+  }
+
+  UpdateOrganizer(request: UpdateOrganizerRequest): Promise<OrganizerResponse> {
+    const data = UpdateOrganizerRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "UpdateOrganizer", data);
+    return promise.then((data) => OrganizerResponse.decode(new BinaryReader(data)));
+  }
+
+  DeleteOrganizer(request: DeleteOrganizerRequest): Promise<Empty> {
+    const data = DeleteOrganizerRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "DeleteOrganizer", data);
+    return promise.then((data) => Empty.decode(new BinaryReader(data)));
+  }
+
+  GetAllOrganizers(request: Empty): Promise<OrganizerListResponse> {
+    const data = Empty.encode(request).finish();
+    const promise = this.rpc.request(this.service, "GetAllOrganizers", data);
+    return promise.then((data) => OrganizerListResponse.decode(new BinaryReader(data)));
   }
 }
 

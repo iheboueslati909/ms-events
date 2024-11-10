@@ -6,6 +6,9 @@ import { ArtistModule } from 'src/artist/artist.module';
 import { OrganizerModule } from 'src/organizer/organizer.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Event, EventSchema } from './entities/event.entity';
+import { ClubModule } from 'src/club/club.module';
+import { BookingModule } from 'src/booking/booking.module';
+import { ConceptModule } from 'src/concept/concept.module';
 
 @Module({
   imports: [
@@ -13,7 +16,7 @@ import { Event, EventSchema } from './entities/event.entity';
       name: Event.name, schema:
         EventSchema
     }]),
-    CommonModule, ArtistModule, OrganizerModule,],
+    ArtistModule, OrganizerModule, ClubModule, BookingModule, ConceptModule, CommonModule ],
   controllers: [EventController],
   providers: [EventService],
   exports: [EventService]

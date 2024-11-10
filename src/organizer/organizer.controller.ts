@@ -3,14 +3,15 @@ import { OrganizerService } from './organizer.service';
 import { CreateOrganizerDto } from './dto/create-organizer.dto';
 import { UpdateOrganizerDto } from './dto/update-organizer.dto';
 import { MessagePattern, Payload } from '@nestjs/microservices';
+import { CreateOrganizerRequest, UpdateOrganizerRequest } from 'src/proto/events-app';
 
 @Controller('organizer')
 export class OrganizerController {
   constructor(private readonly organizerService: OrganizerService) {}
 
   @Post()
-  create(@Body() createOrganizerDto: CreateOrganizerDto) {
-    return this.organizerService.create(createOrganizerDto);
+  create(@Body() createOrganizerRequest: CreateOrganizerRequest) {
+    return this.organizerService.create(createOrganizerRequest);
   }
 
   @Get()
@@ -20,25 +21,19 @@ export class OrganizerController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.organizerService.findOne(+id);
+    return this.organizerService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrganizerDto: UpdateOrganizerDto) {
-    return this.organizerService.update(+id, updateOrganizerDto);
+  update(@Param('id') id: string, @Body() updateOrganizerRequest: UpdateOrganizerRequest) {
+    return this.organizerService.update(updateOrganizerRequest);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.organizerService.remove(+id);
-  }
   
-  @MessagePattern({ cmd: 'POST/EVENTS_API/ORGANIZER/CREATE' })
-  createOrganizer(@Payload() createOrganizerDto: CreateOrganizerDto) {
-    return this.organizerService.create(createOrganizerDto);
+  createOrganizer(@Payload() createOrganizerRequest: CreateOrganizerRequest) {
+    return this.organizerService.create(createOrganizerRequest);
   }
 
-  @MessagePattern({ cmd: 'GET/EVENTS_API/ORGANIZER/ALL'})
   getOrganizerAll(data: any) {
     return this.organizerService.findAll();
   }
