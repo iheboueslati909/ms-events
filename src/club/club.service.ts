@@ -5,6 +5,7 @@ import { ClubResponse, CreateClubRequest, UpdateClubRequest } from 'src/proto/ev
 import { Club } from './entities/club.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { toTimestamp } from 'src/utils/date-utils';
 
 @Injectable()
 export class ClubService {
@@ -62,8 +63,8 @@ export class ClubService {
       description: club.description,
       googleMapsLink: club.googleMapsLink,
       events: club.events.map(event => event.toString()), // Assuming events are ObjectIds, adjust if needed
-      createdAt: club.createdAt,
-      updatedAt: club.updatedAt
+      createdAt: toTimestamp(club.createdAt),
+      updatedAt: toTimestamp(club.updatedAt)
     };
   }
 }

@@ -4,6 +4,8 @@ import { Model } from 'mongoose';
 import { Artist } from './entities/artist.entity';
 import { CreateArtistRequest, UpdateArtistRequest, ArtistResponse, ArtistListResponse } from '../proto/events-app';
 import { UpdateArtistDto } from './dto/update-artist.dto';
+import { Timestamp } from 'google-protobuf/google/protobuf/timestamp_pb';
+import { toTimestamp } from 'src/utils/date-utils';
 
 @Injectable()
 export class ArtistService {
@@ -66,8 +68,8 @@ export class ArtistService {
       availability: artist.availability,
       socialLinks: artist.socialLinks,
       user: artist.user.toString(),
-      createdAt: artist.createdAt,
-      updatedAt: artist.updatedAt
+      createdAt:  toTimestamp(artist.createdAt),
+      updatedAt: toTimestamp(artist.updatedAt)
     };
   }
 

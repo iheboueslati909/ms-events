@@ -8,6 +8,7 @@ import { ArtistService } from 'src/artist/artist.service';
 import { OrganizerService } from 'src/organizer/organizer.service';
 import { ClubService } from 'src/club/club.service';
 import { isValid, parseISO } from 'date-fns';
+import { toTimestamp } from 'src/utils/date-utils';
 
 @Injectable()
 export class EventService {
@@ -153,8 +154,8 @@ export class EventService {
       artist: event.artist?.map((artist: Artist) => artist._id.toString()) || [],  // Map artists to an array of IDs
       organizer: event.organizer?._id.toString(),
       ticketPrice: event.ticketPrice,
-      createdAt: event.createdAt.toISOString(),
-      updatedAt: event.updatedAt.toISOString(),
+      createdAt: toTimestamp(event.createdAt),
+      updatedAt: toTimestamp(event.updatedAt),
       club: event.club?._id?.toString(),
     };
   }

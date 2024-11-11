@@ -5,6 +5,7 @@ import { BookingResponse, CreateBookingRequest, UpdateBookingRequest } from 'src
 import { Booking } from './entities/booking.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { toTimestamp } from 'src/utils/date-utils';
 
 @Injectable()
 export class BookingService {
@@ -55,8 +56,8 @@ export class BookingService {
       client: booking.client.toString(),
       bookingDate: booking.bookingDate.toISOString(),
       status: booking.status,
-      createdAt: booking.createdAt.toISOString(),
-      updatedAt: booking.updatedAt.toISOString(),
+      createdAt: toTimestamp(booking.createdAt),
+      updatedAt: toTimestamp(booking.updatedAt)
     };
   }
 }
