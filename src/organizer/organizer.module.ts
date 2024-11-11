@@ -6,14 +6,14 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Organizer, OrganizerSchema } from './entities/organizer.entity';
 
 @Module({
-  imports: [
+  imports: [CommonModule,
     MongooseModule.forFeature([{
     name: Organizer.name, schema:
     OrganizerSchema
-  }]),
-    CommonModule],
+  }])
+],
   controllers: [OrganizerController],
   providers: [OrganizerService],
-  exports: [OrganizerService]
+  exports: [OrganizerService],
 })
 export class OrganizerModule {}

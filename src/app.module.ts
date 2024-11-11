@@ -11,7 +11,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ConceptModule } from './concept/concept.module';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
-import { ClientsModule, Transport } from "@nestjs/microservices";
 import { BookingModule } from './booking/booking.module';
 
 const ENV = process.env.NODE_ENV || 'dev';
@@ -29,17 +28,7 @@ dotenv.config({ path: path.resolve(process.cwd(), `.env.${ENV}`) });
         uri: `mongodb://${configService.get('MONGO_HOST')}:${configService.get('MONGO_PORT')}/${configService.get('MONGO_DB_NAME')}`,
       }),
     }),
-    ClientsModule.register([
-      {
-        name: "USER_MS",
-        transport: Transport.TCP,
-        options: {
-          host: "127.0.0.1",
-          port: 3001,
-        }
-      },
-    ]),
-    ArtistModule, CommonModule, EventModule, OrganizerModule, ClubModule, ConceptModule, BookingModule
+    ArtistModule, EventModule, OrganizerModule, ClubModule, ConceptModule, BookingModule
 ],
   controllers: [AppController],
   providers: [AppService],

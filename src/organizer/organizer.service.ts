@@ -1,19 +1,55 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateOrganizerDto } from './dto/create-organizer.dto';
 import { UpdateOrganizerDto } from './dto/update-organizer.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Organizer } from './entities/organizer.entity';
 import { Model } from 'mongoose';
 import { CreateOrganizerRequest, OrganizerResponse, UpdateOrganizerRequest } from 'src/proto/events-app';
+import { ClientGrpc } from '@nestjs/microservices';
+import { firstValueFrom, lastValueFrom } from 'rxjs';
+import { Role, UserResponse, UserServiceClient } from 'src/proto/user-app';
 
 @Injectable()
 export class OrganizerService {
+
+  private userServiceClient: UserServiceClient;
+
   constructor(
     @InjectModel(Organizer.name) private readonly organizerModel: Model<Organizer>,
+    @Inject('USER_MS') private readonly userGrpcClient: ClientGrpc, 
+    //This USER_MS client provides access to all gRPC-related methods configured for the microservice.
+
   ) {}
 
+  onModuleInit() {
+      this.userServiceClient = this.userGrpcClient.getService<UserServiceClient>('UserService');
+    //The getService method is used to access a specific gRPC service interface defined in the proto file
+  }
+
+
   async create(data: CreateOrganizerRequest): Promise<OrganizerResponse> {
-    const newOrganizer = new this.organizerModel(data);
+    const { userId, contactEmail, contactPhone, description } = data;
+
+    // Fetch the user profile from user microservice via gRPC
+    const userProfile = await lastValueFrom(this.userServiceClient.findUserById({ id: userId }));
+    if (!userProfile)
+      throw new NotFoundException("The user with is not found")
+    
+    // Validate the user’s role MAYBE TODO LATER
+    /*
+    if (!userProfile.roles.includes(Role.ORGANIZER) {
+      throw new BadRequestException(`User with ID ${userId} does not have the organizer role`);
+    }
+      */
+
+    // Create new organizer
+    const newOrganizer = new this.organizerModel({
+      userId,
+      contactEmail,
+      contactPhone,
+      description,
+    });
+
     const savedOrganizer = await newOrganizer.save();
     return this.toOrganizerResponse(savedOrganizer);
   }

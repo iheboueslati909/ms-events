@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { OrganizerService } from './organizer.service';
 import { CreateOrganizerDto } from './dto/create-organizer.dto';
 import { UpdateOrganizerDto } from './dto/update-organizer.dto';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { GrpcMethod, MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateOrganizerRequest, UpdateOrganizerRequest } from 'src/proto/events-app';
 
 @Controller('organizer')
@@ -29,9 +29,9 @@ export class OrganizerController {
     return this.organizerService.update(updateOrganizerRequest);
   }
 
-  
-  createOrganizer(@Payload() createOrganizerRequest: CreateOrganizerRequest) {
-    return this.organizerService.create(createOrganizerRequest);
+  @GrpcMethod('OrganizerService', 'CreateOrganizer')
+  createOrganizer(data: CreateOrganizerRequest) {
+    return this.organizerService.create(data);
   }
 
   getOrganizerAll(data: any) {
