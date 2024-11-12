@@ -8,6 +8,7 @@ import { ClubResponse, CreateClubRequest, DeleteClubRequest, GetClubByIdRequest,
 export class ClubController {
   constructor(private readonly clubService: ClubService) {}
 
+  //ADMIN ONLY
   @GrpcMethod('ClubService', 'CreateClub')
   async createClub(data: CreateClubRequest) {
     return this.clubService.create(data);

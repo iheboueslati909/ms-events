@@ -59,13 +59,14 @@ export class EventService {
     }
 
     // Ensure all artists exist
-    for (const artistId of artist) {
-      const artistExists = await this.artistService.findOne(artistId);
-      if (!artistExists) {
-        throw new NotFoundException(`Artist with ID ${artistId} not found`);
+    if (artist){
+      for (const artistId of artist) {
+        const artistExists = await this.artistService.findOne(artistId);
+        if (!artistExists) {
+          throw new NotFoundException(`Artist with ID ${artistId} not found`);
+        }
       }
     }
-
     // Ensure club exists and check for conflicting events
     if (club) {
       const clubExists = await this.clubService.findOne(club);
