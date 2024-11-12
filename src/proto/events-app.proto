@@ -146,13 +146,11 @@ message UpdateEventRequest {
   string id = 1;
   string name = 2;
   string location = 3;
-  string dateStart = 4;
-  string dateEnd = 5;
+  google.protobuf.Timestamp dateStart = 4;
+  google.protobuf.Timestamp dateEnd = 5;
   repeated string artist = 6;
-  string organizer = 7;
   double ticketPrice = 8;
   string club = 9;
-
 }
 
 message DeleteEventRequest {
@@ -163,8 +161,8 @@ message EventResponse {
   string id = 1;
   string name = 2;
   string location = 3;
-  string dateStart = 4;
-  string dateEnd = 5;
+  google.protobuf.Timestamp dateStart = 4;
+  google.protobuf.Timestamp dateEnd = 5;
   repeated string artist = 6;
   string organizer = 7;
   double ticketPrice = 8;

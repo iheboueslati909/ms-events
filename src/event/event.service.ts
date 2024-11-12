@@ -150,8 +150,8 @@ export class EventService {
       id: event._id.toString(),
       name: event.name,
       location: event.location,
-      dateStart: event.dateStart.toISOString(),
-      dateEnd: event.dateEnd.toISOString(),
+      dateStart: toTimestamp(event.dateStart),
+      dateEnd: toTimestamp(event.dateEnd),
       artist: event.artist?.map((artist: Artist) => artist._id.toString()) || [],  // Map artists to an array of IDs
       organizer: event.organizer?._id.toString(),
       ticketPrice: event.ticketPrice,

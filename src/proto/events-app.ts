@@ -124,10 +124,9 @@ export interface UpdateEventRequest {
   id: string;
   name: string;
   location: string;
-  dateStart: string;
-  dateEnd: string;
+  dateStart: Timestamp | undefined;
+  dateEnd: Timestamp | undefined;
   artist: string[];
-  organizer: string;
   ticketPrice: number;
   club: string;
 }
@@ -140,8 +139,8 @@ export interface EventResponse {
   id: string;
   name: string;
   location: string;
-  dateStart: string;
-  dateEnd: string;
+  dateStart: Timestamp | undefined;
+  dateEnd: Timestamp | undefined;
   artist: string[];
   organizer: string;
   ticketPrice: number;
