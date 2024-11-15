@@ -20,7 +20,7 @@ export class Artist extends Document {
   socialLinks: string[];
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  user: Types.ObjectId;
+  user: string;
 
   @Prop({ type: Date, default: Date.now })
   createdAt: Date;
