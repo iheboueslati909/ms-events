@@ -9,7 +9,7 @@ export class Concept extends Document {
   name: string;
 
   @Prop({ type: [Types.ObjectId], ref: 'Event' })
-  events: Types.ObjectId[];
+  events: string[];
 
   @Prop({ type: String, required: true, enum: MusicGenre })
   musicGenre: MusicGenre;
