@@ -8,13 +8,13 @@ import { EventStatus } from 'src/event/enums/event-status.enum';
 @Schema({ timestamps: true })
 export class Booking extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Event', required: true })
-  event: Event;
+  event: string;
 
   @Prop({ type: Types.ObjectId, ref: 'ArtistProfile', required: true })
-  artist: Artist;
+  artist: string;
 
   @Prop({ type: Types.ObjectId, ref: 'ClientProfile', required: true })
-  client: Organizer;
+  client: string;
 
   @Prop({ required: true })
   bookingDate: Date;

@@ -51,9 +51,9 @@ export class BookingService {
   private toBookingResponse(booking: Booking): BookingResponse {
     return {
       id: booking._id.toString(),
-      event: booking.event.toString(),
-      artist: booking.artist.toString(),
-      client: booking.client.toString(),
+      event: booking.event,
+      artist: booking.artist,
+      client: booking.client,
       bookingDate: booking.bookingDate.toISOString(),
       status: booking.status,
       createdAt: booking.createdAt.toISOString(),
