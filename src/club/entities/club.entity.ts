@@ -23,7 +23,7 @@ export class Club extends Document{
   googleMapsLink: string;
 
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }] })
-  events: Event[];
+  events: string[];
 
   @Prop({ type: Date, default: Date.now })
   createdAt: Date;

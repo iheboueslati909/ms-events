@@ -62,7 +62,7 @@ export class ClubService {
       capacity: club.capacity,
       description: club.description,
       googleMapsLink: club.googleMapsLink,
-      events: club.events.map(event => event.toString()), // Assuming events are ObjectIds, adjust if needed
+      events: club.events.map(event => event),
       createdAt: club.createdAt.toISOString(),
       updatedAt: club.updatedAt.toISOString()
     };
