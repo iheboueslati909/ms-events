@@ -68,8 +68,8 @@ export class ArtistService {
       availability: artist.availability,
       socialLinks: artist.socialLinks,
       user: artist.user.toString(),
-      createdAt:  toTimestamp(artist.createdAt),
-      updatedAt: toTimestamp(artist.updatedAt)
+      createdAt:  artist.createdAt.toISOString(),
+      updatedAt: artist.updatedAt.toISOString()
     };
   }
 

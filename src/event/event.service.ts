@@ -1,15 +1,12 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { Model } from 'mongoose';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { BookingResponse, CreateBookingRequest, CreateEventRequest, EventResponse, UpdateBookingRequest, UpdateEventRequest } from 'src/proto/events-app';
+import { CreateEventRequest, EventResponse, UpdateEventRequest } from 'src/proto/events-app';
 import { Event } from './entities/event.entity';
-import { Artist } from 'src/artist/entities/artist.entity';
 import { ArtistService } from 'src/artist/artist.service';
 import { OrganizerService } from 'src/organizer/organizer.service';
 import { ClubService } from 'src/club/club.service';
-import { isValid, parseISO } from 'date-fns';
-import { toTimestamp } from 'src/utils/date-utils';
-
+import { toTimestamp, validateAndParseDates } from 'src/utils/date-utils';
 @Injectable()
 export class EventService {
 
@@ -40,17 +37,11 @@ export class EventService {
       return newEvent.save();
     }*/
 
-  async createEvent(data: CreateEventRequest): Promise<Event> {
+  async createEvent(data: CreateEventRequest): Promise<EventResponse> {
     const { name, location, dateStart, dateEnd, artist, organizer, ticketPrice, club } = data;
 
-    // Validate date format and parse dates
-    const parsedDateStart = this.validateAndParseDate(dateStart, 'dateStart');
-    const parsedDateEnd = this.validateAndParseDate(dateEnd, 'dateEnd');
-
-    // Check date range validity
-    if (parsedDateStart >= parsedDateEnd) {
-      throw new BadRequestException('Event start date must be before the end date');
-    }
+    // Validate and parse dates
+    const { start, end } = validateAndParseDates(dateStart, dateEnd);
 
     // Ensure organizer exists
     const organizerProfile = await this.organizerService.findOne(organizer);
@@ -58,42 +49,41 @@ export class EventService {
       throw new NotFoundException(`Organizer with ID ${organizer} not found`);
     }
 
-    // Ensure all artists exist
-    if (artist){
-      for (const artistId of artist) {
-        const artistExists = await this.artistService.findOne(artistId);
-        if (!artistExists) {
-          throw new NotFoundException(`Artist with ID ${artistId} not found`);
-        }
-      }
+    // Ensure all artists exist with batch-fetching
+    const artistEntities = artist ? await this.artistService.findMany(artist) : [];
+    const foundArtistIds = artistEntities.map(artist => artist.id);
+    const missingArtists = artist?.filter(artistId => !foundArtistIds.includes(artistId)) || [];
+    if (missingArtists.length > 0) {
+      throw new NotFoundException(`Artists with IDs [${missingArtists.join(', ')}] not found`);
     }
+
     // Ensure club exists and check for conflicting events
+    let clubEntity = null;
     if (club) {
-      const clubExists = await this.clubService.findOne(club);
-      if (!clubExists) {
+      clubEntity = await this.clubService.findOne(club);
+      if (!clubEntity) {
         throw new NotFoundException(`Club with ID ${club} not found`);
       }
 
-      const hasConflict = await this.hasConflictingEvent(club, parsedDateStart, parsedDateEnd);
+      const hasConflict = await this.hasConflictingEvent(clubEntity._id, start, end);
       if (hasConflict) {
         throw new ConflictException(`There is already an event scheduled in this club during the specified time range.`);
       }
     }
 
-    // Create the event
     const newEvent = new this.eventModel({
       name,
       location,
-      dateStart: parsedDateStart,
-      dateEnd: parsedDateEnd,
-      artist: artist,
+      dateStart: start,
+      dateEnd: end,
+      artist: artistEntities.map(a => a.id), //assuring the ID will be persisted as strings
       organizer,
-      club,
+      club: clubEntity?._id,
       ticketPrice,
     });
 
     const createdEvent = await newEvent.save();
-    return createdEvent;
+    return this.toEventResponse(createdEvent);
   }
 
   async findOneEvent(id: string): Promise<EventResponse> {
@@ -105,10 +95,50 @@ export class EventService {
   }
 
   async updateEvent(id: string, data: UpdateEventRequest): Promise<EventResponse> {
-    const updatedEvent = await this.eventModel.findByIdAndUpdate(id, data, { new: true });
+    const { name, location, dateStart, dateEnd, artist, ticketPrice, club } = data;
+
+    // Validate and parse dates
+    const { start, end } = validateAndParseDates(dateStart, dateEnd);
+    // Batch fetch artist from service by IDs
+    const artistEntities = await this.artistService.findMany(artist);
+    const foundArtistIds = artistEntities.map(artist => artist.id);
+    const missingArtists = artist.filter(artistId => !foundArtistIds.includes(artistId));
+    if (missingArtists.length > 0) {
+      throw new NotFoundException(`Artists with IDs [${missingArtists.join(', ')}] not found`);
+    }
+
+    // Validate and fetch club entity if provided
+    let clubEntity = null;
+    if (club) {
+      clubEntity = await this.clubService.findOne(club);
+      if (!clubEntity) {
+        throw new NotFoundException(`Club with ID ${club} not found`);
+      }
+
+      // Check for conflicting events in the club during the specified time range
+      const conflictingEvent = await this.hasConflictingEvent(clubEntity._id, start, end);
+      if (conflictingEvent) {
+        throw new ConflictException(`There is already an event scheduled in this club during the specified time range.`);
+      }
+    }
+
+    // Prepare update data with validated entities
+    const updateData: Partial<Event> = {
+      name,
+      location,
+      dateStart: start,
+      dateEnd: end,
+      artist: artistEntities.map(a => a.id),
+      ticketPrice,
+      club: clubEntity?._id,
+    };
+
+    // Update and return the event
+    const updatedEvent = await this.eventModel.findByIdAndUpdate(id, updateData, { new: true });
     if (!updatedEvent) {
       throw new NotFoundException(`Event with ID ${id} not found`);
     }
+
     return this.toEventResponse(updatedEvent);
   }
 
@@ -121,10 +151,11 @@ export class EventService {
   }
 
   async findAllEvents(): Promise<EventResponse[]> {
-    const events = await this.eventModel.find().populate('artist organizer');
+    const events = await this.eventModel.find();
     return events.map(event => this.toEventResponse(event));
   }
 
+  //helpers
   async hasConflictingEvent(clubId: string, dateStart: Date, dateEnd: Date): Promise<boolean> {
     const conflictingEvent = await this.eventModel.findOne({
       club: clubId,
@@ -137,27 +168,19 @@ export class EventService {
     return Boolean(conflictingEvent);
   }
 
-  private validateAndParseDate(dateString: string, fieldName: string): Date {
-    const parsedDate = parseISO(dateString);
-    if (!isValid(parsedDate)) {
-      throw new BadRequestException(`Invalid date format for ${fieldName}. Expected ISO format.`);
-    }
-    return parsedDate;
-  }
-
   private toEventResponse(event: Event): EventResponse {
     return {
       id: event._id.toString(),
       name: event.name,
       location: event.location,
-      dateStart: toTimestamp(event.dateStart),
-      dateEnd: toTimestamp(event.dateEnd),
-      artist: event.artist?.map((artist: Artist) => artist._id.toString()) || [],  // Map artists to an array of IDs
-      organizer: event.organizer?._id.toString(),
+      dateStart: event.dateStart.toISOString(),
+      dateEnd: event.dateEnd.toISOString(),
+      artist: event.artist?.map((a) => a) || [],  // Map artists to an array of IDs
+      organizer: event.organizer,
       ticketPrice: event.ticketPrice,
-      createdAt: toTimestamp(event.createdAt),
-      updatedAt: toTimestamp(event.updatedAt),
-      club: event.club?._id?.toString(),
+      createdAt: event.createdAt.toISOString(),
+      updatedAt: event.updatedAt.toISOString(),
+      club: event.club,
     };
   }
 

@@ -59,8 +59,8 @@ message ArtistResponse {
   bool availability = 5;
   repeated string socialLinks = 6;
   string user = 7;
-  google.protobuf.Timestamp createdAt = 8;
-  google.protobuf.Timestamp updatedAt = 9;
+  string createdAt = 8;
+  string updatedAt = 9;
 }
 
 message ArtistListResponse {
@@ -109,8 +109,8 @@ message ClubResponse {
   string description = 5;
   string googleMapsLink = 6;
   repeated string events = 7; // IDs of associated events
-  google.protobuf.Timestamp createdAt = 8;
-  google.protobuf.Timestamp updatedAt = 9;
+  string createdAt = 8;
+  string updatedAt = 9;
 }
 
 message ClubListResponse {
@@ -146,8 +146,8 @@ message UpdateEventRequest {
   string id = 1;
   string name = 2;
   string location = 3;
-  google.protobuf.Timestamp dateStart = 4;
-  google.protobuf.Timestamp dateEnd = 5;
+  string dateStart = 4;
+  string dateEnd = 5;
   repeated string artist = 6;
   double ticketPrice = 8;
   string club = 9;
@@ -161,15 +161,14 @@ message EventResponse {
   string id = 1;
   string name = 2;
   string location = 3;
-  google.protobuf.Timestamp dateStart = 4;
-  google.protobuf.Timestamp dateEnd = 5;
+  string dateStart = 4;
+  string dateEnd = 5;
   repeated string artist = 6;
   string organizer = 7;
   double ticketPrice = 8;
-  google.protobuf.Timestamp createdAt = 9;
-  google.protobuf.Timestamp updatedAt = 10;
+  string createdAt = 9;
+  string updatedAt = 10;
   string club = 11;
-
 }
 
 message EventListResponse {
@@ -217,8 +216,8 @@ message BookingResponse {
   string client = 4;
   string bookingDate = 5;
   string status = 6;
-  google.protobuf.Timestamp createdAt = 7;
-  google.protobuf.Timestamp updatedAt = 8;
+  string createdAt = 7;
+  string updatedAt = 8;
 }
 
 message BookingListResponse {

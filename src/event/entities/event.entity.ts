@@ -19,13 +19,13 @@ export class Event extends Document {
   location: string;
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Artist' }] })
-  artist: Artist[];
+  artist: string[];
 
   @Prop({ type: Types.ObjectId, ref: 'Organizer' })
-  organizer: Organizer;
+  organizer: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Club' })
-  club: Club;
+  club: string;
 
   @Prop({ default: 0 })
   ticketPrice: number;

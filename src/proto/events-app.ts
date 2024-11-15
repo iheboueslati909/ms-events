@@ -9,7 +9,6 @@ import { Metadata } from "@grpc/grpc-js";
 import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
 import { Observable } from "rxjs";
 import { Empty } from "../../google/protobuf/empty";
-import { Timestamp } from "../../google/protobuf/timestamp";
 
 export const protobufPackage = "eventsms";
 
@@ -55,8 +54,8 @@ export interface ArtistResponse {
   availability: boolean;
   socialLinks: string[];
   user: string;
-  createdAt: Timestamp | undefined;
-  updatedAt: Timestamp | undefined;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ArtistListResponse {
@@ -97,8 +96,8 @@ export interface ClubResponse {
   googleMapsLink: string;
   /** IDs of associated events */
   events: string[];
-  createdAt: Timestamp | undefined;
-  updatedAt: Timestamp | undefined;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ClubListResponse {
@@ -124,8 +123,8 @@ export interface UpdateEventRequest {
   id: string;
   name: string;
   location: string;
-  dateStart: Timestamp | undefined;
-  dateEnd: Timestamp | undefined;
+  dateStart: string;
+  dateEnd: string;
   artist: string[];
   ticketPrice: number;
   club: string;
@@ -139,13 +138,13 @@ export interface EventResponse {
   id: string;
   name: string;
   location: string;
-  dateStart: Timestamp | undefined;
-  dateEnd: Timestamp | undefined;
+  dateStart: string;
+  dateEnd: string;
   artist: string[];
   organizer: string;
   ticketPrice: number;
-  createdAt: Timestamp | undefined;
-  updatedAt: Timestamp | undefined;
+  createdAt: string;
+  updatedAt: string;
   club: string;
 }
 
@@ -188,8 +187,8 @@ export interface BookingResponse {
   client: string;
   bookingDate: string;
   status: string;
-  createdAt: Timestamp | undefined;
-  updatedAt: Timestamp | undefined;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface BookingListResponse {

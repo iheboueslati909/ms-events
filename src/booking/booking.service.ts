@@ -56,8 +56,8 @@ export class BookingService {
       client: booking.client.toString(),
       bookingDate: booking.bookingDate.toISOString(),
       status: booking.status,
-      createdAt: toTimestamp(booking.createdAt),
-      updatedAt: toTimestamp(booking.updatedAt)
+      createdAt: booking.createdAt.toISOString(),
+      updatedAt: booking.updatedAt.toISOString()
     };
   }
 }

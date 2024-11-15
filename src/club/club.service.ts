@@ -63,8 +63,8 @@ export class ClubService {
       description: club.description,
       googleMapsLink: club.googleMapsLink,
       events: club.events.map(event => event.toString()), // Assuming events are ObjectIds, adjust if needed
-      createdAt: toTimestamp(club.createdAt),
-      updatedAt: toTimestamp(club.updatedAt)
+      createdAt: club.createdAt.toISOString(),
+      updatedAt: club.updatedAt.toISOString()
     };
   }
 }
