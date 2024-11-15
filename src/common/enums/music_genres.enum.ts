@@ -1,6 +1,6 @@
 export enum MusicGenre {
-    TECHNO = 'techno',
-    HOUSE = 'house',
-    EDM = 'edm',
-    HIPHOP = 'hiphop',
+    TECHNO = 'TECHNO',
+    HOUSE = 'HOUSE',
+    EDM = 'EDM',
+    HIPHOP = 'HIPHOP',
   }
