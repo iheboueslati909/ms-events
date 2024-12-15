@@ -2,7 +2,6 @@ syntax = "proto3";
 package eventsms;
 
 import "google/protobuf/empty.proto";
-import "google/protobuf/timestamp.proto";
 
 //------------------- MAIN APP SERVICE
 service HealthCheck {
@@ -182,14 +181,24 @@ service BookingService {
   rpc UpdateBooking(UpdateBookingRequest) returns (BookingResponse);
   rpc DeleteBooking(DeleteBookingRequest) returns (BookingResponse);
   rpc GetAllBookings(google.protobuf.Empty) returns (BookingListResponse);
+  rpc findArtistBookingsByTimeRange(findArtistBookingsByTimeRangeRequest) returns (BookingListResponse);
 }
 
 message CreateBookingRequest {
   string event = 1; // Event ID
   string artist = 2; // Artist ID
   string client = 3; // Client ID
+  string startTime = 4; // Start time for booking
+  string endTime = 5; // End time for booking
+  string status = 6;
+  string bookingDate = 7;
+}
+
+message findArtistBookingsByTimeRangeRequest {
+  string artist = 1;
+  string startTime = 2;
+  string endTime = 3;
   string bookingDate = 4;
-  string status = 5;
 }
 
 message GetBookingByIdRequest {
@@ -201,8 +210,10 @@ message UpdateBookingRequest {
   string event = 2;
   string artist = 3;
   string client = 4;
-  string bookingDate = 5;
-  string status = 6;
+  string startTime = 5;
+  string endTime = 6;
+  string status = 7;
+  string bookingDate = 8;
 }
 
 message DeleteBookingRequest {
@@ -214,10 +225,12 @@ message BookingResponse {
   string event = 2;
   string artist = 3;
   string client = 4;
-  string bookingDate = 5;
-  string status = 6;
-  string createdAt = 7;
-  string updatedAt = 8;
+  string startTime = 5;
+  string endTime = 6;
+  string status = 7;
+  string createdAt = 8;
+  string updatedAt = 9;
+  string bookingDate = 10;
 }
 
 message BookingListResponse {

@@ -7,6 +7,7 @@ import { ArtistService } from 'src/artist/artist.service';
 import { OrganizerService } from 'src/organizer/organizer.service';
 import { ClubService } from 'src/club/club.service';
 import { toTimestamp, validateAndParseDates } from 'src/utils/date-utils';
+import { BookingService } from 'src/booking/booking.service';
 @Injectable()
 export class EventService {
 
@@ -15,6 +16,7 @@ export class EventService {
     private artistService: ArtistService,
     private organizerService: OrganizerService,
     private clubService: ClubService,
+    private readonly bookingService: BookingService
   ) { }
   /*
     async create(createEventDto: CreateEventDto): Promise<Event> {
@@ -39,17 +41,13 @@ export class EventService {
 
   async createEvent(data: CreateEventRequest): Promise<EventResponse> {
     const { name, location, dateStart, dateEnd, artist, organizer, ticketPrice, club } = data;
-
-    // Validate and parse dates
     const { start, end } = validateAndParseDates(dateStart, dateEnd);
 
-    // Ensure organizer exists
     const organizerProfile = await this.organizerService.findOne(organizer);
     if (!organizerProfile) {
       throw new NotFoundException(`Organizer with ID ${organizer} not found`);
     }
 
-    // Ensure all artists exist with batch-fetching
     const artistEntities = artist ? await this.artistService.findMany(artist) : [];
     const foundArtistIds = artistEntities.map(artist => artist.id);
     const missingArtists = artist?.filter(artistId => !foundArtistIds.includes(artistId)) || [];
@@ -57,7 +55,6 @@ export class EventService {
       throw new NotFoundException(`Artists with IDs [${missingArtists.join(', ')}] not found`);
     }
 
-    // Ensure club exists and check for conflicting events
     let clubEntity = null;
     if (club) {
       clubEntity = await this.clubService.findOne(club);

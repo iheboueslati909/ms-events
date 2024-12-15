@@ -3,7 +3,7 @@ import { GrpcMethod, MessagePattern, Payload } from '@nestjs/microservices';
 import { BookingService } from './booking.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
-import { BookingResponse, CreateBookingRequest, DeleteBookingRequest, GetBookingByIdRequest, UpdateBookingRequest } from 'src/proto/events-app';
+import { BookingResponse, CreateBookingRequest, DeleteBookingRequest, findArtistBookingsByTimeRangeRequest, GetBookingByIdRequest, UpdateBookingRequest } from 'src/proto/events-app';
 
 @Controller()
 export class BookingController {
@@ -33,5 +33,15 @@ export class BookingController {
   @GrpcMethod('BookingService', 'DeleteBooking')
   async deleteBooking(data: DeleteBookingRequest) {
     return this.bookingService.removeBooking(data.id);
+  }
+
+  @GrpcMethod('BookingService', 'findArtistBookingsByTimeRange')
+  async findArtistBookingsByTimeRange(data: findArtistBookingsByTimeRangeRequest) {
+    const conflictingBookings = await this.bookingService.findArtistBookingsByTimeRange(
+      data.artist, 
+      data.startTime, 
+      data.endTime
+    );
+    return { bookings: conflictingBookings };
   }
 }

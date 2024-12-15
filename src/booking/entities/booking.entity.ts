@@ -19,6 +19,12 @@ export class Booking extends Document {
   @Prop({ required: true })
   bookingDate: Date;
 
+  @Prop({ type: Date, required: true })
+  startTime: Date;
+
+  @Prop({ type: Date, required: true })
+  endTime: Date;
+
   @Prop({ default: EventStatus.PENDING, enum: EventStatus, required: true })
   status: string;
 
