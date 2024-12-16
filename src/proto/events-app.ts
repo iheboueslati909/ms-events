@@ -152,6 +152,38 @@ export interface EventListResponse {
   events: EventResponse[];
 }
 
+export interface PaginationRequest {
+  /** Key-value pairs for dynamic query filters */
+  query: { [key: string]: string };
+  /** The page number for pagination */
+  page: number;
+  /** The number of items per page */
+  limit: number;
+}
+
+export interface PaginationRequest_QueryEntry {
+  key: string;
+  value: string;
+}
+
+export interface PaginationMetadata {
+  /** Current page number */
+  currentPage: number;
+  /** Total number of pages */
+  totalPages: number;
+  /** Total number of items */
+  totalItems: number;
+  /** Number of items per page */
+  itemsPerPage: number;
+}
+
+export interface FindAllEventsResponse {
+  /** The list of events */
+  events: EventResponse[];
+  /** Metadata for pagination */
+  pagination: PaginationMetadata | undefined;
+}
+
 export interface CreateBookingRequest {
   /** Event ID */
   event: string;
@@ -159,8 +191,19 @@ export interface CreateBookingRequest {
   artist: string;
   /** Client ID */
   client: string;
-  bookingDate: string;
+  /** Start time for booking */
+  startTime: string;
+  /** End time for booking */
+  endTime: string;
   status: string;
+  bookingDate: string;
+}
+
+export interface findArtistBookingsByTimeRangeRequest {
+  artist: string;
+  startTime: string;
+  endTime: string;
+  bookingDate: string;
 }
 
 export interface GetBookingByIdRequest {
@@ -172,8 +215,10 @@ export interface UpdateBookingRequest {
   event: string;
   artist: string;
   client: string;
-  bookingDate: string;
+  startTime: string;
+  endTime: string;
   status: string;
+  bookingDate: string;
 }
 
 export interface DeleteBookingRequest {
@@ -185,10 +230,12 @@ export interface BookingResponse {
   event: string;
   artist: string;
   client: string;
-  bookingDate: string;
+  startTime: string;
+  endTime: string;
   status: string;
   createdAt: string;
   updatedAt: string;
+  bookingDate: string;
 }
 
 export interface BookingListResponse {
@@ -399,6 +446,8 @@ export interface EventServiceClient {
   deleteEvent(request: DeleteEventRequest, metadata?: Metadata): Observable<EventResponse>;
 
   getAllEvents(request: Empty, metadata?: Metadata): Observable<EventListResponse>;
+
+  findAllEvents(request: PaginationRequest, metadata?: Metadata): Observable<FindAllEventsResponse>;
 }
 
 /** ------------------- EVENT SERVICE */
@@ -428,11 +477,23 @@ export interface EventServiceController {
     request: Empty,
     metadata?: Metadata,
   ): Promise<EventListResponse> | Observable<EventListResponse> | EventListResponse;
+
+  findAllEvents(
+    request: PaginationRequest,
+    metadata?: Metadata,
+  ): Promise<FindAllEventsResponse> | Observable<FindAllEventsResponse> | FindAllEventsResponse;
 }
 
 export function EventServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["createEvent", "getEventById", "updateEvent", "deleteEvent", "getAllEvents"];
+    const grpcMethods: string[] = [
+      "createEvent",
+      "getEventById",
+      "updateEvent",
+      "deleteEvent",
+      "getAllEvents",
+      "findAllEvents",
+    ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
       GrpcMethod("EventService", method)(constructor.prototype[method], method, descriptor);
@@ -459,6 +520,11 @@ export interface BookingServiceClient {
   deleteBooking(request: DeleteBookingRequest, metadata?: Metadata): Observable<BookingResponse>;
 
   getAllBookings(request: Empty, metadata?: Metadata): Observable<BookingListResponse>;
+
+  findArtistBookingsByTimeRange(
+    request: findArtistBookingsByTimeRangeRequest,
+    metadata?: Metadata,
+  ): Observable<BookingListResponse>;
 }
 
 /** ------------------- BOOKING SERVICE */
@@ -488,6 +554,11 @@ export interface BookingServiceController {
     request: Empty,
     metadata?: Metadata,
   ): Promise<BookingListResponse> | Observable<BookingListResponse> | BookingListResponse;
+
+  findArtistBookingsByTimeRange(
+    request: findArtistBookingsByTimeRangeRequest,
+    metadata?: Metadata,
+  ): Promise<BookingListResponse> | Observable<BookingListResponse> | BookingListResponse;
 }
 
 export function BookingServiceControllerMethods() {
@@ -498,6 +569,7 @@ export function BookingServiceControllerMethods() {
       "updateBooking",
       "deleteBooking",
       "getAllBookings",
+      "findArtistBookingsByTimeRange",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);

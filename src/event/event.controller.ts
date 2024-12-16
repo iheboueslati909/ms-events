@@ -3,7 +3,7 @@ import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { GrpcMethod, MessagePattern, Payload } from '@nestjs/microservices';
-import { CreateBookingRequest, CreateEventRequest, DeleteEventRequest, GetEventByIdRequest, UpdateEventRequest } from 'src/proto/events-app';
+import { CreateBookingRequest, CreateEventRequest, DeleteEventRequest, GetEventByIdRequest, PaginationRequest, UpdateEventRequest } from 'src/proto/events-app';
 @Controller('event')
 export class EventController {
   constructor(private readonly eventService: EventService) {}
@@ -34,6 +34,10 @@ export class EventController {
     return {events};
   }
 
+  @GrpcMethod('EventService', 'FindAllEvents')
+  async findEvents(request: PaginationRequest){
+    return await this.eventService.paginateEvents(request);
+  }
 
 }
 

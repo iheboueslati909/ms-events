@@ -1,13 +1,14 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { CreateEventRequest, EventResponse, UpdateEventRequest } from 'src/proto/events-app';
+import { CreateEventRequest, EventResponse, FindAllEventsResponse, PaginationMetadata, PaginationRequest, UpdateEventRequest } from 'src/proto/events-app';
 import { Event } from './entities/event.entity';
 import { ArtistService } from 'src/artist/artist.service';
 import { OrganizerService } from 'src/organizer/organizer.service';
 import { ClubService } from 'src/club/club.service';
-import { toTimestamp, validateAndParseDates } from 'src/utils/date-utils';
+import { validateAndParseDates } from 'src/utils/date-utils';
 import { BookingService } from 'src/booking/booking.service';
+import { reformatPaginationParams } from 'src/utils/pagination-utils';
 @Injectable()
 export class EventService {
 
@@ -152,7 +153,7 @@ export class EventService {
     return events.map(event => this.toEventResponse(event));
   }
 
-  //helpers
+  //TODO helper , take it to utils folder
   async hasConflictingEvent(clubId: string, dateStart: Date, dateEnd: Date): Promise<boolean> {
     const conflictingEvent = await this.eventModel.findOne({
       club: clubId,
@@ -165,6 +166,28 @@ export class EventService {
     return Boolean(conflictingEvent);
   }
 
+  async paginateEvents(request: PaginationRequest): Promise<FindAllEventsResponse> {
+    const { query, skip, limit, page } = reformatPaginationParams(request);
+
+    const [data, total] = await Promise.all([
+      this.eventModel.find(query).skip(skip).limit(limit).exec(),
+      this.eventModel.countDocuments(query),
+    ]);
+
+    const events = data.map((ev) => this.toEventResponse(ev));
+
+    const pagination: PaginationMetadata = {
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalItems: total,
+      itemsPerPage: limit,
+    };
+
+    return { events, pagination };
+  }
+
+
+
   private toEventResponse(event: Event): EventResponse {
     return {
       id: event._id.toString(),
@@ -172,7 +195,7 @@ export class EventService {
       location: event.location,
       dateStart: event.dateStart.toISOString(),
       dateEnd: event.dateEnd.toISOString(),
-      artist: event.artist?.map((a) => a) || [],  // Map artists to an array of IDs
+      artist: event.artist?.map((a) => a) || [],
       organizer: event.organizer,
       ticketPrice: event.ticketPrice,
       createdAt: event.createdAt.toISOString(),
@@ -180,6 +203,5 @@ export class EventService {
       club: event.club,
     };
   }
-
 
 }
