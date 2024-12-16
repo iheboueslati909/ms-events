@@ -123,6 +123,8 @@ service EventService {
   rpc UpdateEvent(UpdateEventRequest) returns (EventResponse);
   rpc DeleteEvent(DeleteEventRequest) returns (EventResponse);
   rpc GetAllEvents(google.protobuf.Empty) returns (EventListResponse);
+  rpc FindAllEvents (PaginationRequest) returns (FindAllEventsResponse);
+
 }
 
 message CreateEventRequest {
@@ -172,6 +174,24 @@ message EventResponse {
 
 message EventListResponse {
   repeated EventResponse events = 1;
+}
+
+message PaginationRequest {
+  map<string, string> query = 1; // Key-value pairs for dynamic query filters
+  int32 page = 2;               // The page number for pagination
+  int32 limit = 3;              // The number of items per page
+}
+
+message PaginationMetadata {
+  int32 currentPage = 1;        // Current page number
+  int32 totalPages = 2;         // Total number of pages
+  int32 totalItems = 3;         // Total number of items
+  int32 itemsPerPage = 4;       // Number of items per page
+}
+
+message FindAllEventsResponse {
+  repeated EventResponse events = 1; // The list of events
+  PaginationMetadata pagination = 2; // Metadata for pagination
 }
 
 //------------------- BOOKING SERVICE
