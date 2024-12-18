@@ -4,10 +4,11 @@ import { UpdateOrganizerDto } from './dto/update-organizer.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Organizer } from './entities/organizer.entity';
 import { Model } from 'mongoose';
-import { CreateOrganizerRequest, OrganizerResponse, UpdateOrganizerRequest } from 'src/proto/events-app';
+import { CreateOrganizerRequest, OrganizerResponse, PaginateOrganierResponse, PaginationMetadata, PaginationRequest, UpdateOrganizerRequest } from 'src/proto/events-app';
 import { ClientGrpc } from '@nestjs/microservices';
 import { firstValueFrom, lastValueFrom } from 'rxjs';
 import { Role, UserResponse, UserServiceClient } from 'src/proto/user-app';
+import { reformatPaginationParams } from 'src/utils/pagination-utils';
 
 @Injectable()
 export class OrganizerService {
@@ -82,6 +83,26 @@ export class OrganizerService {
     const organizers = await this.organizerModel.find();
     return organizers.map(organizer => this.toOrganizerResponse(organizer));
   }
+
+   async paginateOrganizers(request: PaginationRequest): Promise<PaginateOrganierResponse> {
+      const { query, skip, limit, page } = reformatPaginationParams(request);
+  
+      const [data, total] = await Promise.all([
+        this.organizerModel.find(query).skip(skip).limit(limit).exec(),
+        this.organizerModel.countDocuments(query),
+      ]);
+  
+      const organizers = data.map((ev) => this.toOrganizerResponse(ev));
+  
+      const pagination: PaginationMetadata = {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalItems: total,
+        itemsPerPage: limit,
+      };
+  
+      return { organizers, pagination };
+    }
 
   private toOrganizerResponse(organizer: Organizer): OrganizerResponse {
     return {

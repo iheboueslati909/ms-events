@@ -14,6 +14,19 @@ message HealthCheckResponse {
   bool healthy = 1;
 }
 
+message PaginationRequest {
+  map<string, string> query = 1; // Key-value pairs for dynamic query filters
+  int32 page = 2;               // The page number for pagination
+  int32 limit = 3;              // The number of items per page
+}
+
+message PaginationMetadata {
+  int32 currentPage = 1;        // Current page number
+  int32 totalPages = 2;         // Total number of pages
+  int32 totalItems = 3;         // Total number of items
+  int32 itemsPerPage = 4;       // Number of items per page
+}
+
 //------------------- ARTISTS SERVICE
 service ArtistService {
   rpc GetArtistById(GetArtistByIdRequest) returns (ArtistResponse);
@@ -176,19 +189,6 @@ message EventListResponse {
   repeated EventResponse events = 1;
 }
 
-message PaginationRequest {
-  map<string, string> query = 1; // Key-value pairs for dynamic query filters
-  int32 page = 2;               // The page number for pagination
-  int32 limit = 3;              // The number of items per page
-}
-
-message PaginationMetadata {
-  int32 currentPage = 1;        // Current page number
-  int32 totalPages = 2;         // Total number of pages
-  int32 totalItems = 3;         // Total number of items
-  int32 itemsPerPage = 4;       // Number of items per page
-}
-
 message FindAllEventsResponse {
   repeated EventResponse events = 1; // The list of events
   PaginationMetadata pagination = 2; // Metadata for pagination
@@ -264,6 +264,7 @@ service OrganizerService {
   rpc UpdateOrganizer(UpdateOrganizerRequest) returns (OrganizerResponse);
   rpc DeleteOrganizer(DeleteOrganizerRequest) returns (google.protobuf.Empty);
   rpc GetAllOrganizers(google.protobuf.Empty) returns (OrganizerListResponse);
+  rpc PaginateOrganizers (PaginationRequest) returns (PaginateOrganierResponse);
 }
 
 message CreateOrganizerRequest {
@@ -298,4 +299,9 @@ message OrganizerResponse {
 
 message OrganizerListResponse {
   repeated OrganizerResponse organizers = 1;
+}
+
+message PaginateOrganierResponse {
+  repeated OrganizerResponse organizers = 1; // The list of events
+  PaginationMetadata pagination = 2; // Metadata for pagination
 }
